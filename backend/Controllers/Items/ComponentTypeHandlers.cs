@@ -34,16 +34,26 @@ public sealed class CreateComponentTypeCommandHandler : IRequestHandler<CreateCo
             throw new KeyNotFoundException("Component category was not found.");
         }
 
+        var kind = command.Request.Kind.Trim();
+        var value = command.Request.Value.Trim();
+        var footprint = string.IsNullOrWhiteSpace(command.Request.Footprint) ? null : command.Request.Footprint.Trim();
+
         var duplicate = await _context.ComponentTypes.AnyAsync(
-            x => x.CategoryId == command.Request.CategoryId && x.Name == command.Request.Name,
+            x => x.CategoryId == command.Request.CategoryId
+                && x.Kind == kind
+                && x.Value == value
+                && x.Footprint == footprint,
             cancellationToken);
         if (duplicate)
         {
-            throw new InvalidOperationException("A component type with the same name already exists in this category.");
+            throw new InvalidOperationException("A component type with the same kind, value, and footprint already exists in this category.");
         }
 
         var entity = _mapper.Map<ComponentType>(command.Request);
         entity.Id = Guid.NewGuid();
+        entity.Kind = kind;
+        entity.Value = value;
+        entity.Footprint = footprint;
         entity.CreatedAt = DateTime.UtcNow;
         entity.ModifiedAt = DateTime.UtcNow;
         entity.CreatedBy = GetActorId();
@@ -84,15 +94,26 @@ public sealed class UpdateComponentTypeCommandHandler : IRequestHandler<UpdateCo
             throw new KeyNotFoundException("Component category was not found.");
         }
 
+        var kind = command.Request.Kind.Trim();
+        var value = command.Request.Value.Trim();
+        var footprint = string.IsNullOrWhiteSpace(command.Request.Footprint) ? null : command.Request.Footprint.Trim();
+
         var duplicate = await _context.ComponentTypes.AnyAsync(
-            x => x.Id != command.Id && x.CategoryId == command.Request.CategoryId && x.Name == command.Request.Name,
+            x => x.Id != command.Id
+                && x.CategoryId == command.Request.CategoryId
+                && x.Kind == kind
+                && x.Value == value
+                && x.Footprint == footprint,
             cancellationToken);
         if (duplicate)
         {
-            throw new InvalidOperationException("A component type with the same name already exists in this category.");
+            throw new InvalidOperationException("A component type with the same kind, value, and footprint already exists in this category.");
         }
 
         _mapper.Map(command.Request, entity);
+        entity.Kind = kind;
+        entity.Value = value;
+        entity.Footprint = footprint;
         entity.ModifiedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -197,10 +218,16 @@ public sealed class GetComponentTypesQueryHandler : IRequestHandler<GetComponent
 
         if (!string.IsNullOrWhiteSpace(query.stockSystemCode))
         {
-            q = q.Where(x => EF.Functions.ILike(x.Name, $"%{query.stockSystemCode}%"));
+            q = q.Where(x =>
+                EF.Functions.ILike(x.Kind, $"%{query.stockSystemCode}%")
+                || EF.Functions.ILike(x.Value, $"%{query.stockSystemCode}%")
+                || (x.Footprint != null && EF.Functions.ILike(x.Footprint, $"%{query.stockSystemCode}%")));
         }
 
-        q = q.AsNoTracking().OrderBy(x => x.Name);
+        q = q.AsNoTracking()
+            .OrderBy(x => x.Kind)
+            .ThenBy(x => x.Value)
+            .ThenBy(x => x.Footprint);
 
         var total = await q.CountAsync(cancellationToken);
         var rows = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);

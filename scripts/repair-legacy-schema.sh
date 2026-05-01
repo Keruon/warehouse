@@ -26,8 +26,10 @@ CREATE TABLE IF NOT EXISTS "ComponentCategories" (
 
 CREATE TABLE IF NOT EXISTS "ComponentTypes" (
     "Id" uuid PRIMARY KEY,
-    "CategoryId" uuid NULL,
-    "Name" text NOT NULL,
+    "CategoryId" uuid NOT NULL,
+    "Kind" text NOT NULL,
+    "Value" text NOT NULL,
+    "Footprint" text NULL,
     "Type" component_type_enum NOT NULL,
     "Description" text NULL,
     "IsActive" boolean NOT NULL,
@@ -39,8 +41,66 @@ CREATE TABLE IF NOT EXISTS "ComponentTypes" (
         FOREIGN KEY ("CategoryId") REFERENCES "ComponentCategories" ("Id")
 );
 
+INSERT INTO "ComponentCategories" ("Id", "Name", "ParentId", "Description", "IsActive", "CreatedAt", "CreatedBy", "ModifiedAt", "ModifiedBy")
+VALUES (
+    '00000000-0000-0000-0000-000000000001'::uuid,
+    'Legacy Imported',
+    NULL,
+    'Fallback category for repaired legacy component types.',
+    TRUE,
+    NOW(),
+    '00000000-0000-0000-0000-000000000001'::uuid,
+    NOW(),
+    '00000000-0000-0000-0000-000000000001'::uuid
+)
+ON CONFLICT ("Id") DO NOTHING;
+
 ALTER TABLE "ComponentTypes"
     ADD COLUMN IF NOT EXISTS "CategoryId" uuid NULL;
+
+ALTER TABLE "ComponentTypes"
+    ADD COLUMN IF NOT EXISTS "Kind" text;
+
+ALTER TABLE "ComponentTypes"
+    ADD COLUMN IF NOT EXISTS "Value" text;
+
+ALTER TABLE "ComponentTypes"
+    ADD COLUMN IF NOT EXISTS "Footprint" text;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'ComponentTypes' AND column_name = 'Name'
+    ) THEN
+        EXECUTE '
+            UPDATE "ComponentTypes"
+            SET "Kind" = COALESCE(NULLIF(TRIM("Kind"), ''''), NULLIF(TRIM("Name"), ''''), ''Legacy''),
+                "Value" = COALESCE(NULLIF(TRIM("Value"), ''''), NULLIF(TRIM("Name"), ''''), ''Unknown''),
+                "CategoryId" = COALESCE("CategoryId", ''00000000-0000-0000-0000-000000000001''::uuid)
+            WHERE COALESCE(TRIM("Kind"), '''') = ''''
+               OR COALESCE(TRIM("Value"), '''') = ''''
+               OR "CategoryId" IS NULL';
+    ELSE
+        UPDATE "ComponentTypes"
+        SET "Kind" = COALESCE(NULLIF(TRIM("Kind"), ''), 'Legacy'),
+            "Value" = COALESCE(NULLIF(TRIM("Value"), ''), 'Unknown'),
+            "CategoryId" = COALESCE("CategoryId", '00000000-0000-0000-0000-000000000001'::uuid)
+        WHERE COALESCE(TRIM("Kind"), '') = ''
+           OR COALESCE(TRIM("Value"), '') = ''
+           OR "CategoryId" IS NULL;
+    END IF;
+END $$;
+
+ALTER TABLE "ComponentTypes"
+    ALTER COLUMN "CategoryId" SET NOT NULL;
+
+ALTER TABLE "ComponentTypes"
+    ALTER COLUMN "Kind" SET NOT NULL;
+
+ALTER TABLE "ComponentTypes"
+    ALTER COLUMN "Value" SET NOT NULL;
 
 DO $$
 BEGIN
@@ -209,8 +269,8 @@ SELECT id, name, parentid, description, isactive, createdat, createdby, modified
 FROM componentcategory
 ON CONFLICT ("Id") DO NOTHING;
 
-INSERT INTO "ComponentTypes" ("Id", "CategoryId", "Name", "Type", "Description", "IsActive", "CreatedAt", "CreatedBy", "ModifiedAt", "ModifiedBy")
-SELECT id, :'legacy_category_id'::uuid, name, type, description, isactive, createdat, createdby, modifiedat, modifiedby
+INSERT INTO "ComponentTypes" ("Id", "CategoryId", "Kind", "Value", "Footprint", "Type", "Description", "IsActive", "CreatedAt", "CreatedBy", "ModifiedAt", "ModifiedBy")
+SELECT id, :'legacy_category_id'::uuid, name, name, NULL, type, description, isactive, createdat, createdby, modifiedat, modifiedby
 FROM componenttype
 ON CONFLICT ("Id") DO NOTHING;
 

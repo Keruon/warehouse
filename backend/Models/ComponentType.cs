@@ -14,7 +14,9 @@ public class ComponentType
     public Guid CategoryId { get; set; }
     public ComponentCategory? Category { get; set; }
 
-    public string Name { get; set; }
+    public string Kind { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string? Footprint { get; set; }
     
     [Column(TypeName = "component_type_enum")]
     public ComponentPackageType Type { get; set; }

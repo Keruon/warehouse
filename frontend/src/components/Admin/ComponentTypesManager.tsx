@@ -11,11 +11,17 @@ const packageTypes: ComponentPackageType[] = ['SMD', 'ThroughHole', 'QFP', 'SOIC
 
 type TypeFormValues = {
   categoryId: string;
-  name: string;
+  kind: string;
+  value: string;
+  footprint?: string;
   type: ComponentPackageType;
   description?: string;
   isActive?: boolean;
 };
+
+function formatComponentTypeLabel(type: Pick<ComponentTypeResponse, 'kind' | 'value' | 'footprint'>): string {
+  return [type.kind, type.value, type.footprint].filter((part) => Boolean(part && part.trim().length > 0)).join(' ');
+}
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof AxiosError) {
@@ -48,7 +54,7 @@ export default function ComponentTypesManager(): React.ReactElement {
       page,
       pageSize,
       categoryId: categoryFilter,
-      partNumber: nameFilter,
+      stockSystemCode: nameFilter,
       isActive: activeFilter,
     }),
   });
@@ -85,7 +91,9 @@ export default function ComponentTypesManager(): React.ReactElement {
     setEditing(item);
     form.setFieldsValue({
       categoryId: item.categoryId,
-      name: item.name,
+      kind: item.kind,
+      value: item.value,
+      footprint: item.footprint,
       type: item.type as ComponentPackageType,
       description: item.description,
       isActive: item.isActive,
@@ -100,7 +108,9 @@ export default function ComponentTypesManager(): React.ReactElement {
           id: editing.id,
           payload: {
             categoryId: values.categoryId,
-            name: values.name.trim(),
+            kind: values.kind.trim(),
+            value: values.value.trim(),
+            footprint: values.footprint?.trim() || undefined,
             type: values.type,
             description: values.description?.trim() || undefined,
             isActive: values.isActive ?? true,
@@ -110,7 +120,9 @@ export default function ComponentTypesManager(): React.ReactElement {
       } else {
         await createMutation.mutateAsync({
           categoryId: values.categoryId,
-          name: values.name.trim(),
+          kind: values.kind.trim(),
+          value: values.value.trim(),
+          footprint: values.footprint?.trim() || undefined,
           type: values.type,
           description: values.description?.trim() || undefined,
         });
@@ -150,7 +162,7 @@ export default function ComponentTypesManager(): React.ReactElement {
             options={(categoriesQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))}
           />
           <Input.Search
-            placeholder="Search name"
+            placeholder="Search kind/value/footprint"
             allowClear
             onSearch={(v) => { setNameFilter(v || undefined); setPage(1); }}
             style={{ width: 200 }}
@@ -182,7 +194,10 @@ export default function ComponentTypesManager(): React.ReactElement {
           },
         }}
         columns={[
-          { title: 'Name', dataIndex: 'name' },
+          { title: 'Kind', dataIndex: 'kind' },
+          { title: 'Value', dataIndex: 'value' },
+          { title: 'Footprint', dataIndex: 'footprint', render: (v?: string) => v || '-' },
+          { title: 'Display', key: 'display', render: (_, item) => formatComponentTypeLabel(item) },
           { title: 'Type', dataIndex: 'type' },
           { title: 'Category', dataIndex: 'categoryId', render: (id: string) => categoryMap.get(id) ?? id },
           { title: 'Description', dataIndex: 'description', render: (v?: string) => v || '-' },
@@ -212,7 +227,13 @@ export default function ComponentTypesManager(): React.ReactElement {
           <Form.Item name="categoryId" label="Category" rules={[{ required: true, message: 'Category is required.' }]}>
             <Select options={(categoriesQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))} />
           </Form.Item>
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Name is required.' }]}>
+          <Form.Item name="kind" label="Kind" rules={[{ required: true, message: 'Kind is required.' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="value" label="Value" rules={[{ required: true, message: 'Value is required.' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="footprint" label="Footprint">
             <Input />
           </Form.Item>
           <Form.Item name="type" label="Package Type" rules={[{ required: true, message: 'Type is required.' }]}>

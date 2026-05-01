@@ -206,7 +206,7 @@ export default function ItemsPage(): React.ReactElement {
           <datalist id="component-type-suggestions">
             {(typesQuery.data ?? []).map((typeOption) => (
               <option key={typeOption.id} value={typeOption.id}>
-                {typeOption.name}
+                {[typeOption.kind, typeOption.value, typeOption.footprint].filter((part) => Boolean(part && part.trim().length > 0)).join(' ')}
               </option>
             ))}
           </datalist>

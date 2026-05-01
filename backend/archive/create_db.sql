@@ -6,7 +6,7 @@
 CREATE TYPE zone_type_enum AS ENUM ('Storage', 'Production', 'Shipping', 'Returns', 'Maintenance');
 
 -- Define valid Component Types for ComponentTypes
-CREATE TYPE component_type_enum AS ENUM ('SMD', 'Through-hole', 'QFP', 'SOIC', 'DIP', 'Other');
+CREATE TYPE component_type_enum AS ENUM ('SMD', 'ThroughHole', 'QFP', 'SOIC', 'DIP', 'Other');
 
 -- =============================================
 -- 2. Aggregates (Tables)
@@ -81,7 +81,9 @@ CREATE INDEX IX_WarehouseLocation_ShelfId ON WarehouseLocation(ShelfId);
 -- ----------------------------------------------------------------
 CREATE TABLE ComponentType (
     Id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    Name VARCHAR(200) NOT NULL,
+    Kind VARCHAR(100) NOT NULL,
+    Value VARCHAR(100) NOT NULL,
+    Footprint VARCHAR(100),
     Type component_type_enum NOT NULL,
     Description TEXT,
     IsActive BOOLEAN NOT NULL DEFAULT true,
@@ -90,7 +92,7 @@ CREATE TABLE ComponentType (
     ModifiedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     ModifiedBy UUID NOT NULL
 );
-COMMENT ON TABLE ComponentType IS 'Master definition of a part type (e.g., Resistor 10k)';
+COMMENT ON TABLE ComponentType IS 'Master definition of a part type split into kind/value/footprint.';
 
 -- ----------------------------------------------------------------
 -- Table: ComponentCategory

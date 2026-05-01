@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Storage.Data;
 using Storage.Helpers.DTOs;
+using System.Linq;
 
 namespace Storage.Controllers.Items;
 
@@ -40,7 +41,7 @@ public sealed class CreateComponentCommandHandler : IRequestHandler<CreateCompon
 
         var entity = _mapper.Map<Component>(command.Request);
         entity.Id = Guid.NewGuid();
-        entity.ComponentTypeName = type.Name;
+        entity.ComponentTypeName = BuildComponentTypeName(type);
         entity.SupplierCode = supplier?.Code;
         entity.SupplierName = supplier?.Name;
         entity.CreatedAt = DateTime.UtcNow;
@@ -64,9 +65,14 @@ public sealed class CreateComponentCommandHandler : IRequestHandler<CreateCompon
     {
         var componentType = await _context.ComponentTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Id == entity.ComponentTypeId, cancellationToken);
         var response = _mapper.Map<ComponentResponse>(entity);
-        response.ComponentTypeName = componentType?.Name;
+        response.ComponentTypeName = componentType is null ? null : BuildComponentTypeName(componentType);
         response.CategoryId = componentType?.CategoryId ?? Guid.Empty;
         return response;
+    }
+
+    private static string BuildComponentTypeName(ComponentType type)
+    {
+        return string.Join(" ", new[] { type.Kind, type.Value, type.Footprint }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }
 
@@ -97,7 +103,7 @@ public sealed class UpdateComponentCommandHandler : IRequestHandler<UpdateCompon
         }
 
         _mapper.Map(command.Request, entity);
-        entity.ComponentTypeName = type.Name;
+        entity.ComponentTypeName = BuildComponentTypeName(type);
         entity.SupplierCode = supplier?.Code;
         entity.SupplierName = supplier?.Name;
         entity.ModifiedAt = DateTime.UtcNow;
@@ -105,9 +111,14 @@ public sealed class UpdateComponentCommandHandler : IRequestHandler<UpdateCompon
         await _context.SaveChangesAsync(cancellationToken);
 
         var response = _mapper.Map<ComponentResponse>(entity);
-        response.ComponentTypeName = type.Name;
+        response.ComponentTypeName = BuildComponentTypeName(type);
         response.CategoryId = type.CategoryId;
         return response;
+    }
+
+    private static string BuildComponentTypeName(ComponentType type)
+    {
+        return string.Join(" ", new[] { type.Kind, type.Value, type.Footprint }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }
 
@@ -154,9 +165,14 @@ public sealed class GetComponentByIdQueryHandler : IRequestHandler<GetComponentB
 
         var type = await _context.ComponentTypes.AsNoTracking().FirstOrDefaultAsync(x => x.Id == entity.ComponentTypeId, cancellationToken);
         var response = _mapper.Map<ComponentResponse>(entity);
-        response.ComponentTypeName = type?.Name;
+        response.ComponentTypeName = type is null ? null : BuildComponentTypeName(type);
         response.CategoryId = type?.CategoryId ?? Guid.Empty;
         return response;
+    }
+
+    private static string BuildComponentTypeName(ComponentType type)
+    {
+        return string.Join(" ", new[] { type.Kind, type.Value, type.Footprint }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }
 
@@ -217,7 +233,7 @@ public sealed class SearchComponentsQueryHandler : IRequestHandler<SearchCompone
         {
             if (typesById.TryGetValue(item.ComponentTypeId, out var type))
             {
-                item.ComponentTypeName = type.Name;
+                item.ComponentTypeName = BuildComponentTypeName(type);
                 item.CategoryId = type.CategoryId;
             }
         }
@@ -229,5 +245,10 @@ public sealed class SearchComponentsQueryHandler : IRequestHandler<SearchCompone
             PageSize = pageSize,
             TotalItems = total
         };
+    }
+
+    private static string BuildComponentTypeName(ComponentType type)
+    {
+        return string.Join(" ", new[] { type.Kind, type.Value, type.Footprint }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }

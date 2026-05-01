@@ -29,7 +29,9 @@ public class CreateComponentTypeRequestValidator : AbstractValidator<CreateCompo
     public CreateComponentTypeRequestValidator()
     {
         RuleFor(x => x.CategoryId).NotEmpty();
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Kind).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Value).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Footprint).MaximumLength(100).When(x => !string.IsNullOrWhiteSpace(x.Footprint));
         RuleFor(x => x.Type).IsInEnum();
     }
 }

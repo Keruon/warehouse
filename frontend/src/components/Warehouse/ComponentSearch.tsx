@@ -44,6 +44,11 @@ export default function ComponentSearch({
   componentTypes,
   suppliers,
 }: ComponentSearchProps): React.ReactElement {
+  const componentTypeOptions = componentTypes.map((option) => ({
+    value: option.id,
+    label: [option.kind, option.value, option.footprint].filter((part) => Boolean(part && part.trim().length > 0)).join(' '),
+  }));
+
   const columns: ColumnsType<ComponentResponse> = [
     {
       title: 'Part Number',
@@ -105,7 +110,7 @@ export default function ComponentSearch({
                     allowClear
                     placeholder="All types"
                     value={filters.typeId}
-                    options={componentTypes.map((option) => ({ value: option.id, label: option.name }))}
+                    options={componentTypeOptions}
                     onChange={(value) => onFiltersChange({ ...filters, typeId: value || undefined })}
                   />
                 </Form.Item>

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Storage.Data;
 using Storage.Helpers.DTOs;
+using System.Linq;
 
 namespace Storage.Services.Search;
 
@@ -81,7 +82,7 @@ public class SearchService : ISearchService
             {
                 Id = component.Id,
                 ComponentTypeId = component.ComponentTypeId,
-                ComponentTypeName = type?.Name ?? component.ComponentTypeName,
+                ComponentTypeName = type is null ? component.ComponentTypeName : BuildComponentTypeName(type),
                 CategoryId = type?.CategoryId ?? Guid.Empty,
                 PartNumber = component.PartNumber,
                 BatchCode = component.BatchCode,
@@ -103,6 +104,11 @@ public class SearchService : ISearchService
             PageSize = pageSize,
             TotalItems = total
         };
+    }
+
+    private static string BuildComponentTypeName(ComponentType type)
+    {
+        return string.Join(" ", new[] { type.Kind, type.Value, type.Footprint }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 
     public async Task<IReadOnlyList<LocationResponse>> SearchLocationsAsync(string? query, LocationSearchRequest filters, CancellationToken cancellationToken = default)

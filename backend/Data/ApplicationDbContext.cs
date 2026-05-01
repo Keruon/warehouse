@@ -42,11 +42,7 @@ public class ApplicationDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<ComponentType>()
-            .HasIndex(x => x.Name)
-            .IsUnique();
-
-        modelBuilder.Entity<ComponentType>()
-            .HasIndex(x => new { x.CategoryId, x.Name })
+            .HasIndex(x => new { x.CategoryId, x.Kind, x.Value, x.Footprint })
             .IsUnique();
 
         modelBuilder.Entity<StockLocation>()

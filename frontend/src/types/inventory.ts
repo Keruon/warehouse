@@ -43,7 +43,9 @@ export type ComponentResponse = {
 export type ComponentTypeResponse = {
   id: string;
   categoryId: string;
-  name: string;
+  kind: string;
+  value: string;
+  footprint?: string;
   type: string;
   description?: string;
   isActive: boolean;
@@ -256,7 +258,9 @@ export type ComponentPackageType = 'SMD' | 'ThroughHole' | 'QFP' | 'SOIC' | 'DIP
 
 export type CreateComponentTypeRequest = {
   categoryId: string;
-  name: string;
+  kind: string;
+  value: string;
+  footprint?: string;
   type: ComponentPackageType;
   description?: string;
 };
