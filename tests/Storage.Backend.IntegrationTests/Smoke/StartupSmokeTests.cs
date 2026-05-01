@@ -19,7 +19,7 @@ public sealed class StartupSmokeTests
     [Trait("Category", "Smoke")]
     public async Task HealthEndpoint_WhenAppStarts_ShouldReturnOk()
     {
-        await TestDataSeeder.SeedAsync(_factory.Services);
+        await TestDataSeeder.ResetAndSeedAsync(_factory.Services);
 
         using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {

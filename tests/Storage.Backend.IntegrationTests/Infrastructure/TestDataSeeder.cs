@@ -6,6 +6,14 @@ namespace Storage.Backend.IntegrationTests.Infrastructure;
 
 public static class TestDataSeeder
 {
+    private static readonly SemaphoreSlim SetupLock = new(1, 1);
+    private static bool _isDatabasePrepared;
+    private const int TestPasswordWorkFactor = 4;
+
+    private static readonly string AdminPasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword, workFactor: TestPasswordWorkFactor);
+    private static readonly string UserPasswordHash = BCrypt.Net.BCrypt.HashPassword(UserPassword, workFactor: TestPasswordWorkFactor);
+    private static readonly string ReadOnlyPasswordHash = BCrypt.Net.BCrypt.HashPassword(ReadOnlyPassword, workFactor: TestPasswordWorkFactor);
+
     public const string AdminEmail = "admin@test.local";
     public const string AdminPassword = "AdminPass123!";
     public const string UserEmail = "user@test.local";
@@ -21,8 +29,7 @@ public static class TestDataSeeder
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        await context.Database.MigrateAsync(cancellationToken);
-        await EnsureComponentTypeSchemaAsync(context, cancellationToken);
+        await EnsureDatabasePreparedAsync(context, cancellationToken);
 
         await context.Database.ExecuteSqlRawAsync(
             "TRUNCATE TABLE \"AuditLogs\", \"RefreshTokens\", \"StockLocations\", \"Components\", \"ComponentTypes\", \"ComponentCategories\", \"Suppliers\", \"Users\", \"WarehouseLocations\", \"WarehouseShelves\", \"WarehouseAreas\" RESTART IDENTITY CASCADE;",
@@ -39,8 +46,7 @@ public static class TestDataSeeder
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        await context.Database.MigrateAsync(cancellationToken);
-        await EnsureComponentTypeSchemaAsync(context, cancellationToken);
+        await EnsureDatabasePreparedAsync(context, cancellationToken);
 
         if (!await context.Users.AnyAsync(cancellationToken))
         {
@@ -52,7 +58,7 @@ public static class TestDataSeeder
                 Id = Guid.NewGuid(),
                 Username = "admin_test",
                 Email = AdminEmail,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword, workFactor: 12),
+                PasswordHash = AdminPasswordHash,
                 Role = UserRole.Admin,
                 FirstName = "Admin",
                 LastName = "Tester",
@@ -68,7 +74,7 @@ public static class TestDataSeeder
                 Id = Guid.NewGuid(),
                 Username = "user_test",
                 Email = UserEmail,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(UserPassword, workFactor: 12),
+                PasswordHash = UserPasswordHash,
                 Role = UserRole.User,
                 FirstName = "User",
                 LastName = "Tester",
@@ -84,7 +90,7 @@ public static class TestDataSeeder
                 Id = Guid.NewGuid(),
                 Username = "readonly_test",
                 Email = ReadOnlyEmail,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(ReadOnlyPassword, workFactor: 12),
+                PasswordHash = ReadOnlyPasswordHash,
                 Role = UserRole.ReadOnly,
                 FirstName = "Read",
                 LastName = "Only",
@@ -279,6 +285,31 @@ public static class TestDataSeeder
 
         await context.Components.AddAsync(component, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task EnsureDatabasePreparedAsync(ApplicationDbContext context, CancellationToken cancellationToken)
+    {
+        if (_isDatabasePrepared)
+        {
+            return;
+        }
+
+        await SetupLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_isDatabasePrepared)
+            {
+                return;
+            }
+
+            await context.Database.MigrateAsync(cancellationToken);
+            await EnsureComponentTypeSchemaAsync(context, cancellationToken);
+            _isDatabasePrepared = true;
+        }
+        finally
+        {
+            SetupLock.Release();
+        }
     }
 
     private static async Task EnsureComponentTypeSchemaAsync(ApplicationDbContext context, CancellationToken cancellationToken)

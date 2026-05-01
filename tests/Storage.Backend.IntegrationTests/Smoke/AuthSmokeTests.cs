@@ -20,7 +20,7 @@ public sealed class AuthSmokeTests
     [Trait("Category", "Smoke")]
     public async Task Login_WhenAdminCredentialsAreValid_ShouldReturnAccessToken()
     {
-        await TestDataSeeder.SeedAsync(_factory.Services);
+        await TestDataSeeder.ResetAndSeedAsync(_factory.Services);
 
         using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions
         {
