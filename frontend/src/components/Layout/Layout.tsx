@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Layout as AntLayout, Menu, MenuProps, Select, Space, Tag, Typography } from 'antd';
+import { Button, Layout as AntLayout, Menu, MenuProps, Select, Space, Tag, Typography, message } from 'antd';
 import useAuth from '../../hooks/useAuth';
 import { useActiveProject, useClearActiveProject, useProjects, useSetActiveProject } from '../../hooks/useProject';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const { Header, Sider, Content } = AntLayout;
 const { Text } = Typography;
@@ -16,6 +17,7 @@ export default function Layout(): React.ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, isAdmin, logout } = useAuth();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const projectsQuery = useProjects();
   const activeProjectQuery = useActiveProject();
@@ -49,6 +51,7 @@ export default function Layout(): React.ReactElement {
 
   return (
     <AntLayout style={{ minHeight: '100vh' }}>
+      {contextHolder}
       <Sider collapsible>
         <div className="app-logo">Stock App</div>
         <Menu theme="dark" mode="inline" selectedKeys={selectedKey ? [selectedKey] : []} items={menuItems} />
@@ -82,14 +85,42 @@ export default function Layout(): React.ReactElement {
               ]}
               onChange={(value) => {
                 if (value) {
-                  void setActiveProjectMutation.mutateAsync(value);
+                  void setActiveProjectMutation.mutateAsync(value)
+                    .then(() => {
+                      const project = activeProjects.find((item) => item.id === value);
+                      messageApi.success(`Active project set${project ? ` to ${project.name}` : ''}.`);
+                    })
+                    .catch((error: unknown) => {
+                      messageApi.error(getApiErrorMessage(error, 'Failed to set active project.'));
+                    });
                 }
               }}
-              onClear={() => { void clearProjectMutation.mutateAsync(undefined); }}
+              onClear={() => {
+                void clearProjectMutation.mutateAsync(undefined)
+                  .then(() => {
+                    messageApi.success('Active project cleared.');
+                  })
+                  .catch((error: unknown) => {
+                    messageApi.error(getApiErrorMessage(error, 'Failed to clear active project.'));
+                  });
+              }}
             />
 
             {activeProject ? (
-              <Button size="small" onClick={() => { void clearProjectMutation.mutateAsync(undefined); }} loading={clearProjectMutation.isPending} disabled={setActiveProjectMutation.isPending}>
+              <Button
+                size="small"
+                onClick={() => {
+                  void clearProjectMutation.mutateAsync(undefined)
+                    .then(() => {
+                      messageApi.success('Active project cleared.');
+                    })
+                    .catch((error: unknown) => {
+                      messageApi.error(getApiErrorMessage(error, 'Failed to clear active project.'));
+                    });
+                }}
+                loading={clearProjectMutation.isPending}
+                disabled={setActiveProjectMutation.isPending}
+              >
                 Clear Project
               </Button>
             ) : null}

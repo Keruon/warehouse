@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Steps, Button, Form, InputNumber, Typography, Alert, Select, Tag, Space, Table, Popconfirm } from 'antd';
+import { Card, Steps, Button, Form, InputNumber, Typography, Alert, Select, Tag, Space, Table, Popconfirm, message } from 'antd';
 import ComponentSearch from '../components/Warehouse/ComponentSearch';
 import { useComponentSearch } from '../hooks/useSearch';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { useActiveProject, useClearActiveProject, useProjects, useSetActiveProje
 import { getStockAtLocation } from '../services/stockService';
 import type { ActiveProjectResponse, ComponentResponse, ComponentSearchParams, LocationInventoryItemResponse, ProjectLocationSummaryResponse, StockLevelResponse } from '../types/inventory';
 import { queryKeys } from '../hooks/queryKeys';
+import { getApiErrorMessage } from '../utils/apiError';
 
 const { Title } = Typography;
 
@@ -22,6 +23,7 @@ export default function GatheringPage(): React.ReactElement {
   const [locationId, setLocationId] = useState<string | undefined>();
   const [returnQtyByLine, setReturnQtyByLine] = useState<Record<string, number>>({});
   const [form] = Form.useForm();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const { data, isLoading } = useComponentSearch({ ...filters, page, pageSize: 20 });
   const typesQuery = useQuery({ queryKey: ['component-types'], queryFn: getComponentTypes });
@@ -92,6 +94,7 @@ export default function GatheringPage(): React.ReactElement {
 
   return (
     <Card>
+      {contextHolder}
       <Title level={3}>Gathering</Title>
 
       <Card size="small" style={{ marginBottom: 16 }} title="Production Project">
@@ -113,10 +116,25 @@ export default function GatheringPage(): React.ReactElement {
             allowClear
             onChange={(value) => {
               if (value) {
-                void setActiveProjectMutation.mutateAsync(value);
+                void setActiveProjectMutation.mutateAsync(value)
+                  .then(() => {
+                    const selected = selectableProjects.find((project) => project.id === value);
+                    messageApi.success(`Active project set${selected ? ` to ${selected.name}` : ''}.`);
+                  })
+                  .catch((error: unknown) => {
+                    messageApi.error(getApiErrorMessage(error, 'Failed to set active project.'));
+                  });
               }
             }}
-            onClear={() => { void clearProjectMutation.mutateAsync(undefined); }}
+            onClear={() => {
+              void clearProjectMutation.mutateAsync(undefined)
+                .then(() => {
+                  messageApi.success('Active project cleared.');
+                })
+                .catch((error: unknown) => {
+                  messageApi.error(getApiErrorMessage(error, 'Failed to clear active project.'));
+                });
+            }}
           />
           {inactiveProjects.length > 0 ? (
             <Tag color="default">{inactiveProjects.length} inactive project(s) hidden</Tag>

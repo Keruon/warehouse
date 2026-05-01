@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { AxiosError } from 'axios';
 import {
   Button,
   Form,
@@ -22,6 +21,7 @@ import {
   useSetActiveProject,
 } from '../../hooks/useProject';
 import type { CreateProjectRequest, ProjectLocationSummaryResponse } from '../../types/inventory';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const { Title, Text } = Typography;
 
@@ -31,19 +31,6 @@ type ProjectFormValues = {
   name: string;
   code: string;
 };
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof AxiosError) {
-    const payload = error.response?.data as { message?: string; code?: string } | undefined;
-    return payload?.message || payload?.code || fallback;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return fallback;
-}
 
 export default function ProjectsManager(): React.ReactElement {
   const [messageApi, contextHolder] = message.useMessage();
@@ -97,7 +84,7 @@ export default function ProjectsManager(): React.ReactElement {
       setCreateOpen(false);
       form.resetFields();
     } catch (error) {
-      messageApi.error(getErrorMessage(error, 'Failed to create project.'));
+      messageApi.error(getApiErrorMessage(error, 'Failed to create project.'));
     }
   }
 
@@ -106,7 +93,7 @@ export default function ProjectsManager(): React.ReactElement {
       await setActiveMutation.mutateAsync(project.id);
       messageApi.success(`Active project set to ${project.name}.`);
     } catch (error) {
-      messageApi.error(getErrorMessage(error, 'Failed to set active project.'));
+      messageApi.error(getApiErrorMessage(error, 'Failed to set active project.'));
     }
   }
 
@@ -115,7 +102,7 @@ export default function ProjectsManager(): React.ReactElement {
       await deactivateMutation.mutateAsync(project.id);
       messageApi.success(`Project ${project.name} deactivated.`);
     } catch (error) {
-      messageApi.error(getErrorMessage(error, 'Failed to deactivate project.'));
+      messageApi.error(getApiErrorMessage(error, 'Failed to deactivate project.'));
     }
   }
 
@@ -124,7 +111,7 @@ export default function ProjectsManager(): React.ReactElement {
       await activateMutation.mutateAsync(project.id);
       messageApi.success(`Project ${project.name} activated.`);
     } catch (error) {
-      messageApi.error(getErrorMessage(error, 'Failed to activate project.'));
+      messageApi.error(getApiErrorMessage(error, 'Failed to activate project.'));
     }
   }
 
@@ -133,7 +120,7 @@ export default function ProjectsManager(): React.ReactElement {
       await deleteMutation.mutateAsync(project.id);
       messageApi.success(`Project ${project.name} deleted.`);
     } catch (error) {
-      messageApi.error(getErrorMessage(error, 'Failed to delete project.'));
+      messageApi.error(getApiErrorMessage(error, 'Failed to delete project.'));
     }
   }
 
