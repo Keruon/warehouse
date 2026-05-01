@@ -1,0 +1,39 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+.app-logo {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 1rem;
+}
+
+.app-header {
+  align-items: center;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+
+.app-content {
+  margin: 1rem;
+}
+
+.login-page {
+  align-items: center;
+  background: linear-gradient(140deg, #f6f9ff, #e7eef7);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.login-card {
+  max-width: 420px;
+  width: 100%;
+}
