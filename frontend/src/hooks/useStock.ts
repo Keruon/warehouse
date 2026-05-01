@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notification } from 'antd';
-import { receiveStock, gatherStock, transferStock, bulkTransfer } from '../services/stockService';
+import { receiveStock, gatherStock, transferStock, bulkTransfer, returnProjectStock } from '../services/stockService';
+import { closeProject } from '../services/projectService';
 import type {
   ReceiveStockRequest,
   GatherStockRequest,
   TransferStockRequest,
   BulkTransferRequest,
+  ReturnProjectStockRequest,
 } from '../types/inventory';
 
 export function useReceiveStock() {
@@ -28,6 +30,8 @@ export function useGatherStock() {
     mutationFn: (data: GatherStockRequest) => gatherStock(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['component-search'] });
+      queryClient.invalidateQueries({ queryKey: ['component-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['project-inventory'] });
       notification.success({ message: 'Stock gathered successfully' });
     },
     onError: (err: Error) => {
@@ -60,6 +64,43 @@ export function useBulkTransfer() {
     },
     onError: (err: Error) => {
       notification.error({ message: 'Failed to complete bulk transfer', description: err.message });
+    },
+  });
+}
+
+export function useReturnProjectStock() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ReturnProjectStockRequest) => returnProjectStock(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['component-search'] });
+      queryClient.invalidateQueries({ queryKey: ['project-inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['component-stock'] });
+      notification.success({ message: 'Project stock line returned' });
+    },
+    onError: (err: Error) => {
+      notification.error({ message: 'Failed to return project stock', description: err.message });
+    },
+  });
+}
+
+export function useCloseProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (locationId: string) => closeProject(locationId, true),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['active-project'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project-inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['component-search'] });
+      queryClient.invalidateQueries({ queryKey: ['component-stock'] });
+      notification.success({
+        message: 'Project closed',
+        description: `${result.returnedLineCount} lines (${result.returnedQuantity} units) returned to warehouse.`,
+      });
+    },
+    onError: (err: Error) => {
+      notification.error({ message: 'Failed to close project', description: err.message });
     },
   });
 }

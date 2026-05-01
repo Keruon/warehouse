@@ -1,11 +1,22 @@
 import api, { clearAuthTokens, getRefreshToken, setAuthTokens } from './api';
 
+export type ActiveProjectSummary = {
+  id: string;
+  shelfId: string;
+  areaId: string;
+  name: string;
+  code: string;
+  isActive: boolean;
+  isCurrentActiveProject: boolean;
+};
+
 export type AuthUser = {
   id?: string;
   userId?: string;
   username: string;
   email?: string;
   role: string;
+  activeProject?: ActiveProjectSummary | null;
 };
 
 export type TokenResponse = {

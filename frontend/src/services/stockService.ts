@@ -4,6 +4,7 @@ import type {
   GatherStockRequest,
   TransferStockRequest,
   BulkTransferRequest,
+  ReturnProjectStockRequest,
   StockLevelResponse,
   LocationInventoryItemResponse,
 } from '../types/inventory';
@@ -24,6 +25,11 @@ export async function transferStock(data: TransferStockRequest): Promise<void> {
 
 export async function bulkTransfer(data: BulkTransferRequest): Promise<void> {
   await api.post('/api/stock/bulk-transfer', data);
+}
+
+export async function returnProjectStock(data: ReturnProjectStockRequest): Promise<StockLevelResponse> {
+  const res = await api.post<StockLevelResponse>('/api/stock/project-return', data);
+  return res.data;
 }
 
 export async function getStockAtLocation(locationId: string): Promise<LocationInventoryItemResponse[]> {

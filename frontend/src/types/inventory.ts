@@ -21,7 +21,10 @@ export type LocationSearchParams = {
   areaId?: string;
   shelfId?: string;
   hasStock?: boolean;
+  locationKind?: LocationKind;
 };
+
+export type LocationKind = 'Warehouse' | 'Project';
 
 export type ComponentResponse = {
   id: string;
@@ -70,6 +73,7 @@ export type LocationResponse = {
   id: string;
   shelfId: string;
   areaId: string;
+  locationKind: LocationKind;
   name: string;
   code: string;
   description?: string;
@@ -85,9 +89,12 @@ export type LocationResponse = {
 };
 
 export type StockLevelResponse = {
+  stockLocationId: string;
   componentId: string;
   locationId: string;
   locationName?: string;
+  locationCode?: string;
+  locationKind: LocationKind;
   quantity: number;
   batchCode?: string;
   expiryDate?: string;
@@ -132,6 +139,14 @@ export type ShelfResponse = {
 };
 
 export type LocationInventoryItemResponse = {
+  stockLocationId: string;
+  locationId: string;
+  locationName?: string;
+  locationCode?: string;
+  locationKind: LocationKind;
+  suggestedReturnLocationId?: string;
+  suggestedReturnLocationName?: string;
+  suggestedReturnLocationCode?: string;
   componentId: string;
   partNumber: string;
   quantity: number;
@@ -228,7 +243,8 @@ export type UpdateShelfRequest = CreateShelfRequest & {
 };
 
 export type CreateLocationRequest = {
-  shelfId: string;
+  shelfId?: string;
+  locationKind: LocationKind;
   name: string;
   code: string;
   description?: string;
@@ -243,6 +259,33 @@ export type CreateLocationRequest = {
 
 export type UpdateLocationRequest = CreateLocationRequest & {
   isActive: boolean;
+};
+
+export type ProjectLocationSummaryResponse = {
+  id: string;
+  shelfId: string;
+  areaId: string;
+  name: string;
+  code: string;
+  isActive: boolean;
+  isCurrentActiveProject: boolean;
+};
+
+export type ActiveProjectResponse = {
+  activeProject: ProjectLocationSummaryResponse | null;
+};
+
+export type CloseProjectResponse = {
+  projectLocationId: string;
+  projectName: string;
+  returnedLineCount: number;
+  returnedQuantity: number;
+  closed: boolean;
+};
+
+export type ReturnProjectStockRequest = {
+  stockLocationId: string;
+  quantity: number;
 };
 
 export type CreateComponentCategoryRequest = {

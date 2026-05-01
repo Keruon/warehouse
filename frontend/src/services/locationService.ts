@@ -2,6 +2,7 @@ import api from './api';
 import type {
   AreaResponse,
   CreateLocationRequest,
+  LocationKind,
   LocationResponse,
   PaginatedResponse,
   ShelfResponse,
@@ -34,6 +35,7 @@ type GetLocationsParams = {
   pageSize?: number;
   shelfId?: string;
   areaId?: string;
+  locationKind?: LocationKind;
   isActive?: boolean;
 };
 
@@ -44,6 +46,7 @@ export async function getLocationsPaged(params: GetLocationsParams = {}): Promis
       pageSize: params.pageSize ?? 20,
       shelfId: params.shelfId,
       areaId: params.areaId,
+      locationKind: params.locationKind,
       isActive: params.isActive,
     },
   });
