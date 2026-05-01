@@ -20,6 +20,8 @@ type RetriableRequestConfig = AxiosRequestConfig & { _retryAfterRefresh?: boolea
 
 let refreshPromise: Promise<string> | null = null;
 
+const apiBaseUrl = process.env.REACT_APP_API_URL?.trim() || undefined;
+
 export function getAccessToken(): string | null {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
@@ -48,7 +50,7 @@ function getDeviceFingerprint(): string {
 }
 
 function getRefreshClient(): AxiosInstance {
-  return axios.create();
+  return axios.create({ baseURL: apiBaseUrl });
 }
 
 async function refreshAccessToken(): Promise<string> {
@@ -87,7 +89,7 @@ async function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
-const api = axios.create();
+const api = axios.create({ baseURL: apiBaseUrl });
 
 api.interceptors.request.use((config) => {
   const accessToken = getAccessToken();

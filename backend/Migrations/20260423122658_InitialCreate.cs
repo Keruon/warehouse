@@ -41,6 +41,7 @@ namespace backend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: true),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<string>(type: "component_type_enum", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
@@ -53,6 +54,11 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ComponentTypes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ComponentTypes_ComponentCategories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "ComponentCategories",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -321,6 +327,11 @@ namespace backend.Migrations
                 name: "IX_ComponentCategories_ParentId",
                 table: "ComponentCategories",
                 column: "ParentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ComponentTypes_CategoryId",
+                table: "ComponentTypes",
+                column: "CategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Components_ComponentTypeId",

@@ -155,6 +155,22 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+
+    try
+    {
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Database migration skipped during startup.");
+    }
+}
+
 // Configure HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -171,20 +187,5 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health", new HealthCheckOptions());
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        // Initialize with sample data if needed
-        // var context = services.GetRequiredService<ApplicationDbContext>();
-        // await InitializeSampleData(context);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex);
-    }
-}
 
 app.Run();
