@@ -105,3 +105,65 @@ export type CreateComponentRequest = {
 export type UpdateComponentRequest = CreateComponentRequest & {
   isActive: boolean;
 };
+
+export type AreaResponse = {
+  id: string;
+  name: string;
+  code: string;
+  zoneType: string;
+  floorLevel: number;
+  description?: string;
+  isActive: boolean;
+  shelfCount: number;
+};
+
+export type ShelfResponse = {
+  id: string;
+  areaId: string;
+  name: string;
+  code: string;
+  weightLimitKg?: number;
+  description?: string;
+  isActive: boolean;
+  locationCount: number;
+};
+
+export type LocationInventoryItemResponse = {
+  componentId: string;
+  partNumber: string;
+  quantity: number;
+  batchCode?: string;
+  expiryDate?: string;
+};
+
+export type ReceiveStockRequest = {
+  componentId: string;
+  locationId: string;
+  quantity: number;
+  batchCode?: string;
+  expiryDate?: string;
+};
+
+export type GatherStockRequest = {
+  componentId: string;
+  locationId: string;
+  quantity: number;
+};
+
+export type TransferStockRequest = {
+  componentId: string;
+  fromLocationId: string;
+  toLocationId: string;
+  quantity: number;
+};
+
+export type BulkTransferItemRequest = {
+  componentId: string;
+  quantity: number;
+};
+
+export type BulkTransferRequest = {
+  fromLocationId: string;
+  toLocationId: string;
+  items: BulkTransferItemRequest[];
+};
