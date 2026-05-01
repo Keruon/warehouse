@@ -167,3 +167,33 @@ export type BulkTransferRequest = {
   toLocationId: string;
   items: BulkTransferItemRequest[];
 };
+
+export type UserRole = 'Admin' | 'User' | 'ReadOnly';
+
+export type UserResponse = {
+  id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  firstName?: string;
+  lastName?: string;
+  lastLoginAt?: string;
+  isActive: boolean;
+};
+
+export type CreateUserRequest = {
+  username: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  firstName?: string;
+  lastName?: string;
+};
+
+export type UpdateUserRequest = {
+  email: string;
+  role: UserRole;
+  firstName?: string;
+  lastName?: string;
+  isActive: boolean;
+};
