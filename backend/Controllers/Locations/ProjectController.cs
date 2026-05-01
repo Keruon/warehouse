@@ -14,11 +14,89 @@ public class ProjectController : ControllerBase
 {
     private readonly IProjectLocationService _projectLocationService;
     private readonly IStockService _stockService;
+    private readonly IAuditService _auditService;
 
-    public ProjectController(IProjectLocationService projectLocationService, IStockService stockService)
+    public ProjectController(IProjectLocationService projectLocationService, IStockService stockService, IAuditService auditService)
     {
         _projectLocationService = projectLocationService;
         _stockService = stockService;
+        _auditService = auditService;
+    }
+    [HttpPost]
+    public async Task<ActionResult<ProjectLocationSummaryResponse>> CreateProject([FromBody] CreateProjectRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _projectLocationService.CreateProjectAsync(request.Name, request.Code, GetCurrentUserId(), cancellationToken);
+            // Optionally log audit here if desired
+            return Created($"/api/projects/{result.Id}", result);
+        }
+        catch (InvalidOperationException ex) when (ex.Message == "duplicate_project_code")
+        {
+            return BadRequest(new ErrorResponse { Code = "duplicate_project_code", Message = "A project with this code already exists." });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ErrorResponse { Code = "invalid_project_data", Message = ex.Message });
+        }
+    }
+
+    [HttpPut("{locationId:guid}/deactivate")]
+    public async Task<ActionResult<ProjectLocationSummaryResponse>> DeactivateProject(Guid locationId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _projectLocationService.DeactivateProjectAsync(locationId, GetCurrentUserId(), cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ErrorResponse { Code = "deactivate_project_failed", Message = ex.Message });
+        }
+    }
+
+    [HttpPut("{locationId:guid}/activate")]
+    public async Task<ActionResult<ProjectLocationSummaryResponse>> ActivateProject(Guid locationId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _projectLocationService.ActivateProjectAsync(locationId, GetCurrentUserId(), cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ErrorResponse { Code = "activate_project_failed", Message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{locationId:guid}")]
+    public async Task<ActionResult> DeleteProject(Guid locationId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get old values for audit
+            var location = await _projectLocationService.GetProjectLocationAsync(locationId, requireActive: false, cancellationToken);
+            await _projectLocationService.DeleteProjectAsync(locationId, cancellationToken);
+            await _auditService.LogAsync(GetCurrentUserId(), "DELETE_PROJECT", "Project", locationId, oldValues: new { location.Name, location.Code }, newValues: null, cancellationToken: cancellationToken);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            var code = ex.Message == "project_has_stock" ? "project_has_stock" : "delete_project_failed";
+            return BadRequest(new ErrorResponse { Code = code, Message = ex.Message });
+        }
     }
 
     [HttpGet]

@@ -11,4 +11,9 @@ public interface IProjectLocationService
     Task<ProjectLocationSummaryResponse?> GetActiveProjectAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<ProjectLocationSummaryResponse> SetActiveProjectAsync(Guid userId, Guid locationId, CancellationToken cancellationToken = default);
     Task ClearActiveProjectAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<ProjectLocationSummaryResponse> CreateProjectAsync(string name, string code, Guid actorId, CancellationToken cancellationToken = default);
+    Task<ProjectLocationSummaryResponse> DeactivateProjectAsync(Guid locationId, Guid actorId, CancellationToken cancellationToken = default);
+    Task<ProjectLocationSummaryResponse> ActivateProjectAsync(Guid locationId, Guid actorId, CancellationToken cancellationToken = default);
+    Task DeleteProjectAsync(Guid locationId, CancellationToken cancellationToken = default);
 }

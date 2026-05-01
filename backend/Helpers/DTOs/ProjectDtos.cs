@@ -29,3 +29,9 @@ public sealed class ActiveProjectResponse
 {
     public ProjectLocationSummaryResponse? ActiveProject { get; set; }
 }
+
+public sealed class CreateProjectRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+}

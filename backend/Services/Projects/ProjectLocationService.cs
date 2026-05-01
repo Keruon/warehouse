@@ -204,4 +204,153 @@ public sealed class ProjectLocationService : IProjectLocationService
 
         return areas[0];
     }
+
+        public async Task<ProjectLocationSummaryResponse> CreateProjectAsync(string name, string code, Guid actorId, CancellationToken cancellationToken = default)
+        {
+            name = name?.Trim() ?? string.Empty;
+            code = code?.Trim().ToUpperInvariant() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(code))
+                throw new ArgumentException("Name and code are required.");
+
+            var duplicate = await _context.WarehouseLocations
+                .IgnoreQueryFilters()
+                .AnyAsync(x => x.LocationKind == LocationKind.Project && x.Code.ToUpper() == code, cancellationToken);
+            if (duplicate)
+                throw new InvalidOperationException("duplicate_project_code");
+
+            var shelfId = await ResolveShelfIdAsync(LocationKind.Project, null, actorId, cancellationToken);
+            var now = DateTime.UtcNow;
+            var location = new WarehouseLocation
+            {
+                Id = Guid.NewGuid(),
+                ShelfId = shelfId,
+                LocationKind = LocationKind.Project,
+                Name = name,
+                Code = code,
+                IsActive = true,
+                BinX = 0,
+                BinY = 0,
+                CreatedAt = now,
+                ModifiedAt = now,
+                CreatedBy = actorId,
+                ModifiedBy = actorId
+            };
+            await _context.WarehouseLocations.AddAsync(location, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // ProjectLocationSummaryResponse projection
+            var shelf = await _context.WarehouseShelves.AsNoTracking().FirstAsync(x => x.Id == shelfId, cancellationToken);
+            var areaId = shelf.AreaId;
+            return new ProjectLocationSummaryResponse
+            {
+                Id = location.Id,
+                ShelfId = location.ShelfId,
+                AreaId = areaId,
+                Name = location.Name,
+                Code = location.Code,
+                IsActive = location.IsActive,
+                IsCurrentActiveProject = false
+            };
+        }
+
+        public async Task<ProjectLocationSummaryResponse> DeactivateProjectAsync(Guid locationId, Guid actorId, CancellationToken cancellationToken = default)
+        {
+            var location = await _context.WarehouseLocations
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.Id == locationId, cancellationToken)
+                ?? throw new KeyNotFoundException("Project location was not found.");
+            if (location.LocationKind != LocationKind.Project)
+                throw new InvalidOperationException("Selected location is not a project location.");
+            if (!location.IsActive)
+            {
+                // Already inactive, return projection
+                var shelf = await _context.WarehouseShelves.AsNoTracking().FirstAsync(x => x.Id == location.ShelfId, cancellationToken);
+                return new ProjectLocationSummaryResponse
+                {
+                    Id = location.Id,
+                    ShelfId = location.ShelfId,
+                    AreaId = shelf.AreaId,
+                    Name = location.Name,
+                    Code = location.Code,
+                    IsActive = location.IsActive,
+                    IsCurrentActiveProject = false
+                };
+            }
+            location.IsActive = false;
+            location.ModifiedAt = DateTime.UtcNow;
+            location.ModifiedBy = actorId;
+            // Bulk clear active project for all users
+            var users = _context.Users.Where(u => u.ActiveProjectLocationId == locationId);
+            await users.ForEachAsync(u => { u.ActiveProjectLocationId = null; }, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            var shelf2 = await _context.WarehouseShelves.AsNoTracking().FirstAsync(x => x.Id == location.ShelfId, cancellationToken);
+            return new ProjectLocationSummaryResponse
+            {
+                Id = location.Id,
+                ShelfId = location.ShelfId,
+                AreaId = shelf2.AreaId,
+                Name = location.Name,
+                Code = location.Code,
+                IsActive = location.IsActive,
+                IsCurrentActiveProject = false
+            };
+        }
+
+        public async Task<ProjectLocationSummaryResponse> ActivateProjectAsync(Guid locationId, Guid actorId, CancellationToken cancellationToken = default)
+        {
+            var location = await _context.WarehouseLocations
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.Id == locationId, cancellationToken)
+                ?? throw new KeyNotFoundException("Project location was not found.");
+            if (location.LocationKind != LocationKind.Project)
+                throw new InvalidOperationException("Selected location is not a project location.");
+            if (location.IsActive)
+            {
+                var shelf = await _context.WarehouseShelves.AsNoTracking().FirstAsync(x => x.Id == location.ShelfId, cancellationToken);
+                return new ProjectLocationSummaryResponse
+                {
+                    Id = location.Id,
+                    ShelfId = location.ShelfId,
+                    AreaId = shelf.AreaId,
+                    Name = location.Name,
+                    Code = location.Code,
+                    IsActive = location.IsActive,
+                    IsCurrentActiveProject = false
+                };
+            }
+            location.IsActive = true;
+            location.ModifiedAt = DateTime.UtcNow;
+            location.ModifiedBy = actorId;
+            await _context.SaveChangesAsync(cancellationToken);
+            var shelf2 = await _context.WarehouseShelves.AsNoTracking().FirstAsync(x => x.Id == location.ShelfId, cancellationToken);
+            return new ProjectLocationSummaryResponse
+            {
+                Id = location.Id,
+                ShelfId = location.ShelfId,
+                AreaId = shelf2.AreaId,
+                Name = location.Name,
+                Code = location.Code,
+                IsActive = location.IsActive,
+                IsCurrentActiveProject = false
+            };
+        }
+
+        public async Task DeleteProjectAsync(Guid locationId, CancellationToken cancellationToken = default)
+        {
+            var location = await _context.WarehouseLocations
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.Id == locationId, cancellationToken)
+                ?? throw new KeyNotFoundException("Project location was not found.");
+            if (location.LocationKind != LocationKind.Project)
+                throw new InvalidOperationException("Selected location is not a project location.");
+            // Stock guard
+            var hasStock = await _context.StockLocations.AnyAsync(x => x.LocationId == locationId && x.Quantity > 0, cancellationToken);
+            if (hasStock)
+                throw new InvalidOperationException("project_has_stock");
+            // Clear active project for all users
+            var users = _context.Users.Where(u => u.ActiveProjectLocationId == locationId);
+            await users.ForEachAsync(u => { u.ActiveProjectLocationId = null; }, cancellationToken);
+            _context.WarehouseLocations.Remove(location);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 }
