@@ -6,8 +6,15 @@ import LocationPicker from '../components/Warehouse/LocationPicker';
 import { useComponentSearch } from '../hooks/useSearch';
 import { useQuery } from '@tanstack/react-query';
 import { getComponentTypes, getComponentCategories, getSuppliers, getComponentStock } from '../services/componentService';
+import { getStockAtLocation } from '../services/stockService';
 import { useTransferStock, useBulkTransfer } from '../hooks/useStock';
-import type { ComponentResponse, ComponentSearchParams, StockLevelResponse, BulkTransferItemRequest } from '../types/inventory';
+import type {
+  ComponentResponse,
+  ComponentSearchParams,
+  StockLevelResponse,
+  BulkTransferItemRequest,
+  LocationInventoryItemResponse,
+} from '../types/inventory';
 
 const { Title } = Typography;
 const INITIAL_FILTERS: ComponentSearchParams = {};
@@ -154,12 +161,9 @@ function BulkTransferTab(): React.ReactElement {
   const [toLocationId, setToLocationId] = useState<string | undefined>();
   const [rows, setRows] = useState<BulkRow[]>([]);
 
-  const locationInventoryQuery = useQuery({
+  const locationInventoryQuery = useQuery<LocationInventoryItemResponse[]>({
     queryKey: ['location-inventory', fromLocationId],
-    queryFn: async () => {
-      const { getStockAtLocation } = await import('../services/stockService');
-      return getStockAtLocation(fromLocationId!);
-    },
+    queryFn: () => getStockAtLocation(fromLocationId!),
     enabled: !!fromLocationId,
   });
 
