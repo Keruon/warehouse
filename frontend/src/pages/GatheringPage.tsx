@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Card, Steps, Button, Form, InputNumber, Typography, Alert, Select, Tag, Space, Table, Popconfirm } from 'antd';
 import ComponentSearch from '../components/Warehouse/ComponentSearch';
 import { useComponentSearch } from '../hooks/useSearch';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getComponentTypes, getComponentCategories, getSuppliers, getComponentStock } from '../services/componentService';
 import { useCloseProject, useGatherStock, useReturnProjectStock } from '../hooks/useStock';
-import { clearActiveProject, getActiveProject, getProjects, setActiveProject } from '../services/projectService';
+import { useActiveProject, useClearActiveProject, useProjects, useSetActiveProject } from '../hooks/useProject';
 import { getStockAtLocation } from '../services/stockService';
 import type { ActiveProjectResponse, ComponentResponse, ComponentSearchParams, LocationInventoryItemResponse, ProjectLocationSummaryResponse, StockLevelResponse } from '../types/inventory';
+import { queryKeys } from '../hooks/queryKeys';
 
 const { Title } = Typography;
 
@@ -21,7 +22,6 @@ export default function GatheringPage(): React.ReactElement {
   const [locationId, setLocationId] = useState<string | undefined>();
   const [returnQtyByLine, setReturnQtyByLine] = useState<Record<string, number>>({});
   const [form] = Form.useForm();
-  const queryClient = useQueryClient();
 
   const { data, isLoading } = useComponentSearch({ ...filters, page, pageSize: 20 });
   const typesQuery = useQuery({ queryKey: ['component-types'], queryFn: getComponentTypes });
@@ -34,18 +34,11 @@ export default function GatheringPage(): React.ReactElement {
     enabled: !!selectedComponent && step === 1,
   });
 
-  const projectsQuery = useQuery<ProjectLocationSummaryResponse[]>({
-    queryKey: ['projects'],
-    queryFn: getProjects,
-  });
-
-  const activeProjectQuery = useQuery<ActiveProjectResponse>({
-    queryKey: ['active-project'],
-    queryFn: getActiveProject,
-  });
+  const projectsQuery = useProjects();
+  const activeProjectQuery = useActiveProject();
 
   const projectInventoryQuery = useQuery<LocationInventoryItemResponse[]>({
-    queryKey: ['project-inventory', activeProjectQuery.data?.activeProject?.id],
+    queryKey: queryKeys.projectInventory(activeProjectQuery.data?.activeProject?.id),
     queryFn: () => getStockAtLocation(activeProjectQuery.data!.activeProject!.id),
     enabled: !!activeProjectQuery.data?.activeProject?.id,
   });
@@ -54,23 +47,8 @@ export default function GatheringPage(): React.ReactElement {
   const returnMutation = useReturnProjectStock();
   const closeProjectMutation = useCloseProject();
 
-  const setActiveProjectMutation = useMutation({
-    mutationFn: (projectId: string) => setActiveProject(projectId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-project'] });
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['project-inventory'] });
-    },
-  });
-
-  const clearProjectMutation = useMutation({
-    mutationFn: clearActiveProject,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-project'] });
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['project-inventory'] });
-    },
-  });
+  const setActiveProjectMutation = useSetActiveProject();
+  const clearProjectMutation = useClearActiveProject();
 
   const handleSelectComponent = (c: ComponentResponse) => {
     setSelectedComponent(c);

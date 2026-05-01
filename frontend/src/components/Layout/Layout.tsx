@@ -1,9 +1,8 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Layout as AntLayout, Menu, MenuProps, Space, Tag, Typography } from 'antd';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import useAuth from '../../hooks/useAuth';
-import { clearActiveProject, getActiveProject } from '../../services/projectService';
+import { useActiveProject, useClearActiveProject } from '../../hooks/useProject';
 
 const { Header, Sider, Content } = AntLayout;
 const { Text } = Typography;
@@ -17,21 +16,9 @@ export default function Layout(): React.ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, isAdmin, logout } = useAuth();
-  const queryClient = useQueryClient();
 
-  const activeProjectQuery = useQuery({
-    queryKey: ['active-project'],
-    queryFn: getActiveProject,
-  });
-
-  const clearProjectMutation = useMutation({
-    mutationFn: clearActiveProject,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['active-project'] });
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['project-inventory'] });
-    },
-  });
+  const activeProjectQuery = useActiveProject();
+  const clearProjectMutation = useClearActiveProject();
 
   const allItems: NavItem[] = [
     { key: '/dashboard', label: <Link to="/dashboard">Dashboard</Link> },

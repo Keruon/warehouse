@@ -275,6 +275,11 @@ export type ActiveProjectResponse = {
   activeProject: ProjectLocationSummaryResponse | null;
 };
 
+export type CreateProjectRequest = {
+  name: string;
+  code: string;
+};
+
 export type CloseProjectResponse = {
   projectLocationId: string;
   projectName: string;
