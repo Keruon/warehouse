@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Storage.Helpers.DTOs;
+using Storage.Services;
 using Storage.Services.Projects;
 using Storage.Services.Stock;
 
