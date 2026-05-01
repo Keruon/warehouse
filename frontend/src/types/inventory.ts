@@ -197,3 +197,101 @@ export type UpdateUserRequest = {
   lastName?: string;
   isActive: boolean;
 };
+
+export type ZoneType = 'Storage' | 'Production' | 'Shipping' | 'Returns' | 'Maintenance';
+
+export type CreateAreaRequest = {
+  name: string;
+  code: string;
+  zoneType: ZoneType;
+  floorLevel: number;
+  description?: string;
+};
+
+export type UpdateAreaRequest = CreateAreaRequest & {
+  isActive: boolean;
+};
+
+export type CreateShelfRequest = {
+  areaId: string;
+  name: string;
+  code: string;
+  weightLimitKg?: number;
+  description?: string;
+};
+
+export type UpdateShelfRequest = CreateShelfRequest & {
+  isActive: boolean;
+};
+
+export type CreateLocationRequest = {
+  shelfId: string;
+  name: string;
+  code: string;
+  description?: string;
+  binX: number;
+  binY: number;
+  depth?: number;
+  width?: number;
+  height?: number;
+  volume?: number;
+  isReserved: boolean;
+};
+
+export type UpdateLocationRequest = CreateLocationRequest & {
+  isActive: boolean;
+};
+
+export type CreateComponentCategoryRequest = {
+  name: string;
+  parentId?: string;
+  description?: string;
+};
+
+export type UpdateComponentCategoryRequest = CreateComponentCategoryRequest & {
+  isActive: boolean;
+};
+
+export type ComponentPackageType = 'SMD' | 'ThroughHole' | 'QFP' | 'SOIC' | 'DIP' | 'Other';
+
+export type CreateComponentTypeRequest = {
+  categoryId: string;
+  name: string;
+  type: ComponentPackageType;
+  description?: string;
+};
+
+export type UpdateComponentTypeRequest = CreateComponentTypeRequest & {
+  isActive: boolean;
+};
+
+export type CreateSupplierRequest = {
+  code: string;
+  name: string;
+};
+
+export type UpdateSupplierRequest = CreateSupplierRequest & {
+  isActive: boolean;
+};
+
+export type AuditLogResponse = {
+  id: number;
+  userId: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  oldValues?: string;
+  newValues?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp: string;
+};
+
+export type AuditLogQuery = {
+  page?: number;
+  pageSize?: number;
+  entityType?: string;
+  userId?: string;
+  fromUtc?: string;
+  toUtc?: string;
+};
