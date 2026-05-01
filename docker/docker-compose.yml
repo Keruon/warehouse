@@ -33,6 +33,7 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://0.0.0.0:8080
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-storage};Username=${POSTGRES_USER:-storage};Password=${POSTGRES_PASSWORD:-storagepass}
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-dev-secret-key-change-me-32-bytes-min}
     ports:
       - "${BACKEND_PORT:-5000}:8080"
 
