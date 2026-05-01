@@ -11,6 +11,7 @@ import UsersPage from './pages/UsersPage';
 import ReceivingPage from './pages/ReceivingPage';
 import GatheringPage from './pages/GatheringPage';
 import StockMovesPage from './pages/StockMovesPage';
+import ProjectsPage from './pages/ProjectsPage';
 import AdminPage from './pages/AdminPage';
 import './App.css';
 
@@ -33,6 +34,7 @@ export default function App(): React.ReactElement {
                 <Route path="/receiving" element={<ReceivingPage />} />
                 <Route path="/gathering" element={<GatheringPage />} />
                 <Route path="/stock-moves" element={<StockMovesPage />} />
+                <Route path="/projects" element={<ProjectsPage />} />
                 <Route
                   path="/users"
                   element={(
