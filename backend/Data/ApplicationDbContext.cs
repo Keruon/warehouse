@@ -41,6 +41,20 @@ public class ApplicationDbContext : DbContext
             .HasIndex(x => x.Code)
             .IsUnique();
 
+        modelBuilder.Entity<ComponentType>()
+            .HasIndex(x => x.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<StockLocation>()
+            .HasIndex(x => new { x.ComponentId, x.LocationId, x.BatchCode });
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(x => x.Token)
+            .IsUnique();
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(x => new { x.UserId, x.IsRevoked });
+
         modelBuilder.Entity<User>()
             .HasIndex(x => x.Username)
             .IsUnique();
@@ -108,5 +122,16 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>()
             .Property(x => x.Role)
             .HasConversion<string>();
+
+        // Global soft-delete filters keep inactive records out of normal queries.
+        modelBuilder.Entity<WarehouseArea>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<WarehouseShelf>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<WarehouseLocation>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<ComponentCategory>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<ComponentType>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<Component>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<Supplier>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<StockLocation>().HasQueryFilter(x => x.IsActive);
+        modelBuilder.Entity<User>().HasQueryFilter(x => x.IsActive);
     }
 }
