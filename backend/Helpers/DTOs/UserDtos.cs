@@ -27,6 +27,7 @@ public sealed class UserResponse
     public UserRole Role { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
+    public Guid? ActiveProjectLocationId { get; set; }
     public DateTime? LastLoginAt { get; set; }
     public bool IsActive { get; set; }
 }

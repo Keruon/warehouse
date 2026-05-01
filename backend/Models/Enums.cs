@@ -17,6 +17,12 @@ public enum ComponentPackageType
     Other
 }
 
+public enum LocationKind
+{
+    Warehouse,
+    Project
+}
+
 public enum UserRole
 {
     Admin,

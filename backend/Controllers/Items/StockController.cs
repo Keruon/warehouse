@@ -62,6 +62,21 @@ public class StockController : ControllerBase
         }
     }
 
+    [HttpPost("project-return")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<StockLevelResponse>> ReturnProjectStock([FromBody] ReturnProjectStockRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _stockService.ReturnProjectStockAsync(request.StockLocationId, request.Quantity, cancellationToken);
+            return Ok(result);
+        }
+        catch (Exception ex) when (ex is KeyNotFoundException or InvalidOperationException)
+        {
+            return BadRequest(new ErrorResponse { Code = "project_return_failed", Message = ex.Message });
+        }
+    }
+
     [HttpPost("bulk-transfer")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> BulkTransfer([FromBody] BulkTransferRequest request, CancellationToken cancellationToken)

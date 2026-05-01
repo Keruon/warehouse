@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Storage.Data;
 using Storage.Helpers.DTOs;
+using Storage.Services.Projects;
 
 namespace Storage.Controllers.Locations;
 
@@ -13,12 +14,14 @@ public sealed class UpdateLocationCommandHandler : IRequestHandler<UpdateLocatio
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IProjectLocationService _projectLocationService;
 
-    public UpdateLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+    public UpdateLocationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor, IProjectLocationService projectLocationService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
+        _projectLocationService = projectLocationService;
     }
 
     public async Task<LocationResponse> Handle(UpdateLocationCommand command, CancellationToken cancellationToken)
@@ -26,23 +29,34 @@ public sealed class UpdateLocationCommandHandler : IRequestHandler<UpdateLocatio
         var location = await _unitOfWork.WarehouseLocations.GetByIdAsync(command.LocationId, cancellationToken)
             ?? throw new KeyNotFoundException("Location was not found.");
 
-        var shelf = await _unitOfWork.WarehouseShelves.GetByIdAsync(command.Request.ShelfId, cancellationToken)
+        var resolvedLocationKind = command.Request.LocationKind;
+        var shelfId = await _projectLocationService.ResolveShelfIdAsync(resolvedLocationKind, command.Request.ShelfId ?? location.ShelfId, GetActorId(), cancellationToken);
+
+        var shelf = await _unitOfWork.WarehouseShelves.GetByIdAsync(shelfId, cancellationToken)
             ?? throw new KeyNotFoundException("Shelf was not found.");
 
-        var duplicateBin = await _unitOfWork.WarehouseLocations.ExistsAsync(
-            x => x.Id != command.LocationId
-              && x.ShelfId == command.Request.ShelfId
-              && x.BinX == command.Request.BinX
-              && x.BinY == command.Request.BinY,
-            cancellationToken);
-        if (duplicateBin)
+        if (resolvedLocationKind == LocationKind.Project)
         {
-            throw new InvalidOperationException("The bin coordinates are already in use on this shelf.");
+            await _projectLocationService.EnsureShelfSupportsProjectLocationAsync(shelf.Id, cancellationToken);
+        }
+        else
+        {
+            var duplicateBin = await _unitOfWork.WarehouseLocations.ExistsAsync(
+                x => x.Id != command.LocationId
+                  && x.ShelfId == shelfId
+                  && x.BinX == command.Request.BinX
+                  && x.BinY == command.Request.BinY,
+                cancellationToken);
+            if (duplicateBin)
+            {
+                throw new InvalidOperationException("The bin coordinates are already in use on this shelf.");
+            }
         }
 
         var oldValues = new
         {
             location.ShelfId,
+            location.LocationKind,
             location.Name,
             location.Code,
             location.Description,
@@ -56,7 +70,20 @@ public sealed class UpdateLocationCommandHandler : IRequestHandler<UpdateLocatio
             location.IsActive
         };
 
+        var duplicateCode = await _unitOfWork.WarehouseLocations.ExistsAsync(
+            x => x.Id != command.LocationId
+              && x.ShelfId == shelfId
+              && x.Name == command.Request.Name
+              && x.Code == command.Request.Code,
+            cancellationToken);
+        if (duplicateCode)
+        {
+            throw new InvalidOperationException("A location with the same name and code already exists on this shelf.");
+        }
+
         _mapper.Map(command.Request, location);
+        location.ShelfId = shelfId;
+        location.LocationKind = resolvedLocationKind;
         location.ModifiedAt = DateTime.UtcNow;
         location.ModifiedBy = GetActorId();
 

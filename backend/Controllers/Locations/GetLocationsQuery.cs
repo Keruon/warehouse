@@ -6,7 +6,7 @@ using Storage.Helpers.DTOs;
 
 namespace Storage.Controllers.Locations;
 
-public sealed record GetLocationsQuery(PagedQuery PagedQuery, Guid? ShelfId, Guid? AreaId, bool? IsActive) : IRequest<PaginatedResponse<LocationResponse>>;
+public sealed record GetLocationsQuery(PagedQuery PagedQuery, Guid? ShelfId, Guid? AreaId, LocationKind? LocationKind, bool? IsActive) : IRequest<PaginatedResponse<LocationResponse>>;
 
 public sealed class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, PaginatedResponse<LocationResponse>>
 {
@@ -38,6 +38,11 @@ public sealed class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery
             locationsQuery = locationsQuery.Where(x => _context.WarehouseShelves
                 .IgnoreQueryFilters()
                 .Any(s => s.Id == x.ShelfId && s.AreaId == query.AreaId.Value));
+        }
+
+        if (query.LocationKind.HasValue)
+        {
+            locationsQuery = locationsQuery.Where(x => x.LocationKind == query.LocationKind.Value);
         }
 
         locationsQuery = locationsQuery

@@ -14,6 +14,9 @@ public class WarehouseLocation
     public Guid ShelfId { get; set; }
     public WarehouseShelf Shelf { get; set; }
 
+    [Column(TypeName = "text")]
+    public LocationKind LocationKind { get; set; } = LocationKind.Warehouse;
+
     public string Name { get; set; }
     
     public string Code { get; set; }

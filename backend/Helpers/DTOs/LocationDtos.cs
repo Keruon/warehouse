@@ -2,7 +2,8 @@ namespace Storage.Helpers.DTOs;
 
 public class CreateLocationRequest
 {
-    public Guid ShelfId { get; set; }
+    public Guid? ShelfId { get; set; }
+    public LocationKind LocationKind { get; set; } = LocationKind.Warehouse;
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -25,6 +26,7 @@ public sealed class LocationResponse
     public Guid Id { get; set; }
     public Guid ShelfId { get; set; }
     public Guid AreaId { get; set; }
+    public LocationKind LocationKind { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string? Description { get; set; }
@@ -44,4 +46,5 @@ public sealed class LocationSearchRequest
     public Guid? AreaId { get; set; }
     public Guid? ShelfId { get; set; }
     public bool? HasStock { get; set; }
+    public LocationKind? LocationKind { get; set; }
 }

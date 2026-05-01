@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Storage.Data;
 using Storage.Helpers.DTOs;
 using Storage.Services.Auth;
 
@@ -11,10 +13,12 @@ namespace Storage.Controllers.Users;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ApplicationDbContext _context;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, ApplicationDbContext context)
     {
         _authService = authService;
+        _context = context;
     }
 
     [AllowAnonymous]
@@ -70,12 +74,35 @@ public class AuthController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
-    public ActionResult<object> Me()
+    public async Task<ActionResult<object>> Me(CancellationToken cancellationToken)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var username = User.FindFirstValue(ClaimTypes.Name);
         var email = User.FindFirstValue(ClaimTypes.Email);
         var role = User.FindFirstValue(ClaimTypes.Role);
+        ProjectLocationSummaryResponse? activeProject = null;
+
+        if (Guid.TryParse(userId, out var parsedUserId))
+        {
+            activeProject = await _context.Users
+                .AsNoTracking()
+                .Where(x => x.Id == parsedUserId && x.ActiveProjectLocationId != null)
+                .Join(
+                    _context.WarehouseLocations.AsNoTracking(),
+                    user => user.ActiveProjectLocationId,
+                    location => (Guid?)location.Id,
+                    (user, location) => new ProjectLocationSummaryResponse
+                    {
+                        Id = location.Id,
+                        ShelfId = location.ShelfId,
+                        AreaId = _context.WarehouseShelves.Where(shelf => shelf.Id == location.ShelfId).Select(shelf => shelf.AreaId).FirstOrDefault(),
+                        Name = location.Name,
+                        Code = location.Code,
+                        IsActive = location.IsActive,
+                        IsCurrentActiveProject = true
+                    })
+                .FirstOrDefaultAsync(cancellationToken);
+        }
 
         return Ok(new
         {
@@ -85,7 +112,8 @@ public class AuthController : ControllerBase
                 userId,
                 username,
                 email,
-                role
+                role,
+                activeProject
             }
         });
     }

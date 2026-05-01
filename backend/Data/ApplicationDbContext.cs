@@ -56,6 +56,9 @@ public class ApplicationDbContext : DbContext
             .HasIndex(x => new { x.UserId, x.IsRevoked });
 
         modelBuilder.Entity<User>()
+            .HasIndex(x => x.ActiveProjectLocationId);
+
+        modelBuilder.Entity<User>()
             .HasIndex(x => x.Username)
             .IsUnique();
 
@@ -117,8 +120,18 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<User>()
+            .HasOne<WarehouseLocation>()
+            .WithMany()
+            .HasForeignKey(x => x.ActiveProjectLocationId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         modelBuilder.Entity<WarehouseArea>()
             .Property(x => x.ZoneType)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<WarehouseLocation>()
+            .Property(x => x.LocationKind)
             .HasConversion<string>();
 
         modelBuilder.Entity<ComponentType>()

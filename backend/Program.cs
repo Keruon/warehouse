@@ -16,6 +16,7 @@ using Storage.Helpers;
 using Storage.Middleware;
 using Storage.Services;
 using Storage.Services.Auth;
+using Storage.Services.Projects;
 using Storage.Services.Search;
 using Storage.Services.Stock;
 using System.Text;
@@ -68,6 +69,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IProjectLocationService, ProjectLocationService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<JwtTokenHelper>();
 

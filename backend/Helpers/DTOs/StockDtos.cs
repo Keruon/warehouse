@@ -24,11 +24,20 @@ public sealed class TransferStockRequest
     public int Quantity { get; set; }
 }
 
+public sealed class ReturnProjectStockRequest
+{
+    public Guid StockLocationId { get; set; }
+    public int Quantity { get; set; }
+}
+
 public sealed class StockLevelResponse
 {
+    public Guid StockLocationId { get; set; }
     public Guid ComponentId { get; set; }
     public Guid LocationId { get; set; }
     public string? LocationName { get; set; }
+    public string? LocationCode { get; set; }
+    public LocationKind LocationKind { get; set; }
     public int Quantity { get; set; }
     public string? BatchCode { get; set; }
     public DateTime? ExpiryDate { get; set; }
@@ -36,6 +45,14 @@ public sealed class StockLevelResponse
 
 public sealed class LocationInventoryItemResponse
 {
+    public Guid StockLocationId { get; set; }
+    public Guid LocationId { get; set; }
+    public string? LocationName { get; set; }
+    public string? LocationCode { get; set; }
+    public LocationKind LocationKind { get; set; }
+    public Guid? SuggestedReturnLocationId { get; set; }
+    public string? SuggestedReturnLocationName { get; set; }
+    public string? SuggestedReturnLocationCode { get; set; }
     public Guid ComponentId { get; set; }
     public string PartNumber { get; set; } = string.Empty;
     public int Quantity { get; set; }

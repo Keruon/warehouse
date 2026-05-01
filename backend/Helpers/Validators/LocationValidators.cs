@@ -7,7 +7,9 @@ public class CreateLocationRequestValidator : AbstractValidator<CreateLocationRe
 {
     public CreateLocationRequestValidator()
     {
-        RuleFor(x => x.ShelfId).NotEmpty();
+        RuleFor(x => x.ShelfId)
+            .NotEmpty()
+            .When(x => x.LocationKind != LocationKind.Project);
         RuleFor(x => x.Name).NotEmpty().MaximumLength(120);
         RuleFor(x => x.Code).NotEmpty().MaximumLength(50);
         RuleFor(x => x.BinX).GreaterThanOrEqualTo(0);

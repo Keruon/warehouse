@@ -22,10 +22,11 @@ public class LocationController : ControllerBase
         [FromQuery] PagedQuery pagedQuery,
         [FromQuery] Guid? shelfId,
         [FromQuery] Guid? areaId,
+        [FromQuery] LocationKind? locationKind,
         [FromQuery] bool? isActive,
         CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetLocationsQuery(pagedQuery, shelfId, areaId, isActive), cancellationToken);
+        var result = await _mediator.Send(new GetLocationsQuery(pagedQuery, shelfId, areaId, locationKind, isActive), cancellationToken);
         return Ok(result);
     }
 

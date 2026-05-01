@@ -23,6 +23,9 @@ public class User
     [MaxLength(100)]
     public string? LastName { get; set; }
 
+    [Column(TypeName = "uuid")]
+    public Guid? ActiveProjectLocationId { get; set; }
+
     public DateTime? LastLoginAt { get; set; }
     public bool IsActive { get; set; } = true;
 

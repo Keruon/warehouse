@@ -388,6 +388,9 @@ namespace backend.Migrations
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ActiveProjectLocationId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -430,6 +433,8 @@ namespace backend.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("ActiveProjectLocationId");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -520,6 +525,10 @@ namespace backend.Migrations
 
                     b.Property<bool>("IsReserved")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("LocationKind")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("timestamp with time zone");
@@ -669,6 +678,14 @@ namespace backend.Migrations
                     b.Navigation("Component");
 
                     b.Navigation("WarehouseLocation");
+                });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.HasOne("WarehouseLocation")
+                        .WithMany()
+                        .HasForeignKey("ActiveProjectLocationId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("WarehouseLocation", b =>
