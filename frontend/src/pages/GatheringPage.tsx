@@ -95,6 +95,8 @@ export default function GatheringPage(): React.ReactElement {
   const selectedStockLevel = stockQuery.data?.find((s) => s.locationId === locationId);
   const maxQty = selectedStockLevel?.quantity ?? undefined;
   const activeProject = activeProjectQuery.data?.activeProject ?? null;
+  const selectableProjects = (projectsQuery.data ?? []).filter((project) => project.isActive);
+  const inactiveProjects = (projectsQuery.data ?? []).filter((project) => !project.isActive);
 
   const handleReturnLine = async (line: LocationInventoryItemResponse) => {
     const qty = Math.max(1, Math.min(returnQtyByLine[line.stockLocationId] ?? line.quantity, line.quantity));
@@ -118,7 +120,7 @@ export default function GatheringPage(): React.ReactElement {
             style={{ minWidth: 280 }}
             value={activeProject?.id}
             loading={projectsQuery.isLoading}
-            options={(projectsQuery.data ?? []).map((project) => ({
+            options={selectableProjects.map((project) => ({
               label: `${project.name} (${project.code})`,
               value: project.id,
             }))}
@@ -130,6 +132,9 @@ export default function GatheringPage(): React.ReactElement {
             }}
             onClear={() => clearProjectMutation.mutate()}
           />
+          {inactiveProjects.length > 0 ? (
+            <Tag color="default">{inactiveProjects.length} inactive project(s) hidden</Tag>
+          ) : null}
           {activeProject ? (
             <Tag color="green">Active: {activeProject.name} ({activeProject.code})</Tag>
           ) : (
