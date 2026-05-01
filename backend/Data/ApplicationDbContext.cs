@@ -29,6 +29,11 @@ public class ApplicationDbContext : DbContext
             .HasIndex(x => new { x.Name, x.Code, x.ZoneType, x.FloorLevel })
             .IsUnique();
 
+        modelBuilder.Entity<WarehouseArea>()
+            .HasIndex(x => x.ZoneType)
+            .HasFilter("\"ZoneType\" = 'Production'")
+            .IsUnique();
+
         modelBuilder.Entity<WarehouseShelf>()
             .HasIndex(x => new { x.AreaId, x.Name, x.Code })
             .IsUnique();
@@ -36,6 +41,9 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<WarehouseLocation>()
             .HasIndex(x => new { x.ShelfId, x.Name, x.Code })
             .IsUnique();
+
+        modelBuilder.Entity<WarehouseLocation>()
+            .HasIndex(x => x.LocationKind);
 
         modelBuilder.Entity<Supplier>()
             .HasIndex(x => x.Code)
@@ -76,7 +84,7 @@ public class ApplicationDbContext : DbContext
             .HasOne(x => x.Shelf)
             .WithMany()
             .HasForeignKey(x => x.ShelfId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Component>()
             .HasOne(x => x.ComponentType)

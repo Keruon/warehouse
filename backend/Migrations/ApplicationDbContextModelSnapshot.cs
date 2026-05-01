@@ -486,6 +486,10 @@ namespace backend.Migrations
                     b.HasIndex("Name", "Code", "ZoneType", "FloorLevel")
                         .IsUnique();
 
+                    b.HasIndex("ZoneType")
+                        .IsUnique()
+                        .HasFilter("\"ZoneType\" = 'Production'");
+
                     b.ToTable("WarehouseAreas");
                 });
 
@@ -553,6 +557,8 @@ namespace backend.Migrations
 
                     b.HasIndex("ShelfId", "Name", "Code")
                         .IsUnique();
+
+                    b.HasIndex("LocationKind");
 
                     b.ToTable("WarehouseLocations");
                 });
@@ -693,7 +699,7 @@ namespace backend.Migrations
                     b.HasOne("WarehouseShelf", "Shelf")
                         .WithMany()
                         .HasForeignKey("ShelfId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Shelf");
