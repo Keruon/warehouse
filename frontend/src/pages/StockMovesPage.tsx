@@ -195,7 +195,7 @@ function BulkTransferTab(): React.ReactElement {
     setToLocationId(undefined);
   };
 
-  const inventoryOptions = (locationInventoryQuery.data ?? []).map((item) => ({
+  const inventoryOptions = (locationInventoryQuery.data ?? []).map((item: LocationInventoryItemResponse) => ({
     label: `${item.partNumber} (${item.quantity} available)`,
     value: item.componentId,
   }));
@@ -220,7 +220,9 @@ function BulkTransferTab(): React.ReactElement {
       title: 'Quantity',
       dataIndex: 'quantity',
       render: (_: number, row: BulkRow) => {
-        const maxAvail = locationInventoryQuery.data?.find((i) => i.componentId === row.componentId)?.quantity;
+        const maxAvail = locationInventoryQuery.data?.find(
+          (item: LocationInventoryItemResponse) => item.componentId === row.componentId,
+        )?.quantity;
         return (
           <InputNumber
             min={1}
