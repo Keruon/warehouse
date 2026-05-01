@@ -81,7 +81,7 @@ export default function ComponentDetailDrawer({ componentId, open, onClose }: Co
               dataSource={stockQuery.data || []}
               pagination={false}
               columns={[
-                { title: 'Location ID', dataIndex: 'locationId', key: 'locationId' },
+                { title: 'Location', key: 'locationId', render: (_: unknown, record: StockLevelResponse) => record.locationName ?? record.locationId },
                 { title: 'Quantity', dataIndex: 'quantity', key: 'quantity', width: 110 },
                 {
                   title: 'Batch Code',
