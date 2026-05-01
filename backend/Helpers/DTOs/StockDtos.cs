@@ -28,6 +28,7 @@ public sealed class StockLevelResponse
 {
     public Guid ComponentId { get; set; }
     public Guid LocationId { get; set; }
+    public string? LocationName { get; set; }
     public int Quantity { get; set; }
     public string? BatchCode { get; set; }
     public DateTime? ExpiryDate { get; set; }

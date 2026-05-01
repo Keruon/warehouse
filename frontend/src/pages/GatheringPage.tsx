@@ -111,7 +111,7 @@ export default function GatheringPage(): React.ReactElement {
                 options={(stockQuery.data ?? []).map((s) => ({
                   label: (
                     <span>
-                      {s.locationId} <Tag color="blue">{s.quantity} in stock</Tag>
+                      {s.locationName ?? s.locationId} <Tag color="blue">{s.quantity} in stock</Tag>
                       {s.batchCode && <Tag>{s.batchCode}</Tag>}
                     </span>
                   ),

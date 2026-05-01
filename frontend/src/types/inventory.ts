@@ -87,6 +87,7 @@ export type LocationResponse = {
 export type StockLevelResponse = {
   componentId: string;
   locationId: string;
+  locationName?: string;
   quantity: number;
   batchCode?: string;
   expiryDate?: string;

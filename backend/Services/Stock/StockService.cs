@@ -145,14 +145,19 @@ public class StockService : IStockService
             .AsNoTracking()
             .Where(x => x.ComponentId == componentId)
             .OrderByDescending(x => x.Quantity)
-            .Select(x => new StockLevelResponse
-            {
-                ComponentId = x.ComponentId,
-                LocationId = x.LocationId,
-                Quantity = x.Quantity,
-                BatchCode = x.BatchCode,
-                ExpiryDate = x.ExpiryDate
-            })
+            .Join(
+                _context.WarehouseLocations.AsNoTracking(),
+                stock => stock.LocationId,
+                loc => loc.Id,
+                (stock, loc) => new StockLevelResponse
+                {
+                    ComponentId = stock.ComponentId,
+                    LocationId = stock.LocationId,
+                    LocationName = loc.Name,
+                    Quantity = stock.Quantity,
+                    BatchCode = stock.BatchCode,
+                    ExpiryDate = stock.ExpiryDate
+                })
             .ToListAsync(cancellationToken);
     }
 
