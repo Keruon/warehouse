@@ -1,37 +1,98 @@
-# Docker staging for Storage project
+# Docker Development Setup
 
-This folder stages local Docker development for three compose targets:
+This folder contains Docker Compose setup for local development of the Storage stack.
 
-- `postgres`
-- `backend`
-- `frontend`
+Services:
 
-## What was found during analysis
+- `postgres` (`postgres:16-alpine`)
+- `backend` (ASP.NET Core 8)
+- `frontend` (React + TypeScript)
 
-- Frontend is a React app (`react-scripts`) and has a proxy to `http://localhost:5000`.
-- Backend source exists in `backend/`, but there is currently no `.csproj` or `.sln` file in the repository.
-- Legacy database bootstrap SQL exists in `backend/archive/create_db.sql` and is mounted into PostgreSQL init scripts.
+## Current state
+
+- The backend project file exists and is built from `backend/backend.csproj`.
+- Database bootstrap SQL is mounted from `backend/archive/create_db.sql`.
+- Compose startup has been verified with all three containers running.
 
 ## Start the stack
 
-From this `docker/` folder:
+From repository root:
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file docker/.env.example up --build -d
+```
+
+Or from this `docker/` folder:
 
 ```bash
 cp .env.example .env
-docker compose up --build
+docker compose up --build -d
 ```
 
-Or from repository root:
+## Stop the stack
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file docker/.env.example up --build
+docker compose -f docker/docker-compose.yml --env-file docker/.env.example down
 ```
 
-## Important backend note
+## Service URLs and ports
 
-The backend container checks for a `backend/*.csproj` file at startup.
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:5000`
+- Backend health: `http://localhost:5000/health`
+- PostgreSQL: `localhost:5432`
 
-- If found: it runs `dotnet restore` and `dotnet run` on port `8080` (mapped to host `${BACKEND_PORT}`).
-- If not found: it prints a clear message and stays alive so the rest of the stack can still run.
+Default port and environment values are defined in `docker/.env.example`.
 
-To fully enable the API container, add your backend project file (for example `backend/backend.csproj`).
+## Login
+
+- Frontend login page: `http://localhost:3000/login`
+- Backend login endpoint: `POST /api/auth/login`
+
+No default app user is seeded by migrations/bootstrap SQL.
+
+## Create a default admin user
+
+After the stack is running, create (or update) an admin user directly in Postgres:
+
+```bash
+./scripts/create-admin-user.sh
+```
+
+Defaults:
+
+- `username`: `admin`
+- `password`: `admin`
+- `email`: `admin@local.dev`
+
+Optional overrides:
+
+```bash
+CONTAINER_NAME=storage-postgres \
+DB_NAME=storage \
+DB_USER=storage \
+USERNAME=admin \
+PASSWORD=admin \
+EMAIL=admin@local.dev \
+./scripts/create-admin-user.sh
+```
+
+Implementation details:
+
+- Uses `docker exec` + `psql` against `storage-postgres`
+- Uses `pgcrypto` to write a BCrypt-compatible password hash
+- Upserts by username and enforces `Admin` role
+
+## Quick verification
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file docker/.env.example ps
+curl -i http://localhost:5000/health
+curl -i http://localhost:3000
+```
+
+Expected results:
+
+- `/health` returns `200 OK`
+- frontend root returns `200 OK`
+- `/api/auth/me` returns `401 Unauthorized` without a token (expected)
