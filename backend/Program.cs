@@ -9,6 +9,7 @@ using Storage.Data;
 using Storage.Data.Repositories;
 using Storage.Helpers;
 using Storage.Services.Auth;
+using Storage.Services.Search;
 using Storage.Services.Stock;
 using System.Text;
 
@@ -25,6 +26,7 @@ builder.Services.AddScoped<IStockLocationRepository, StockLocationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<JwtTokenHelper>();
 

@@ -38,3 +38,10 @@ public sealed class LocationResponse
     public bool IsActive { get; set; }
     public int CurrentStockQuantity { get; set; }
 }
+
+public sealed class LocationSearchRequest
+{
+    public Guid? AreaId { get; set; }
+    public Guid? ShelfId { get; set; }
+    public bool? HasStock { get; set; }
+}
