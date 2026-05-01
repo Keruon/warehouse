@@ -30,13 +30,12 @@ public sealed class UpdateAreaCommandHandler : IRequestHandler<UpdateAreaCommand
             x => x.Id != command.AreaId
               && x.Name == command.Request.Name
               && x.Code == command.Request.Code
-              && x.ZoneType == command.Request.ZoneType
               && x.FloorLevel == command.Request.FloorLevel,
             cancellationToken);
 
         if (duplicate)
         {
-            throw new InvalidOperationException("Another area with the same name, code, zone type, and floor level already exists.");
+            throw new InvalidOperationException("Another area with the same name, code, and floor level already exists.");
         }
 
         var oldValues = new

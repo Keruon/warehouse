@@ -239,7 +239,7 @@ namespace backend.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("component_type_enum");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -474,7 +474,7 @@ namespace backend.Migrations
 
                     b.Property<string>("ZoneType")
                         .IsRequired()
-                        .HasColumnType("zone_type_enum");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

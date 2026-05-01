@@ -10,6 +10,20 @@ LEGACY_CATEGORY_ID="${LEGACY_CATEGORY_ID:-00000000-0000-0000-0000-000000000001}"
 docker exec -i "$DB_CONTAINER" psql -v ON_ERROR_STOP=1 -v legacy_category_id="$LEGACY_CATEGORY_ID" -U "$DB_USER" -d "$DB_NAME" <<'SQL'
 BEGIN;
 
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'zone_type_enum') THEN
+        CREATE TYPE zone_type_enum AS ENUM ('Storage', 'Production', 'Shipping', 'Returns', 'Maintenance');
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'component_type_enum') THEN
+        CREATE TYPE component_type_enum AS ENUM ('SMD', 'ThroughHole', 'QFP', 'SOIC', 'DIP', 'Other');
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS "ComponentCategories" (
     "Id" uuid PRIMARY KEY,
     "Name" text NOT NULL,

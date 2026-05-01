@@ -13,7 +13,7 @@ public class WarehouseArea
     
     public string Code { get; set; }
 
-    [Column(TypeName = "zone_type_enum")] // Explicitly name the column as ZoneType in SQL
+    [Column(TypeName = "text")]
     public ZoneType ZoneType { get; set; }
 
     public int FloorLevel { get; set; }

@@ -18,7 +18,7 @@ public class ComponentType
     public string Value { get; set; } = string.Empty;
     public string? Footprint { get; set; }
     
-    [Column(TypeName = "component_type_enum")]
+    [Column(TypeName = "text")]
     public ComponentPackageType Type { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;

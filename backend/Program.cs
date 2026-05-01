@@ -19,6 +19,7 @@ using Storage.Services.Auth;
 using Storage.Services.Search;
 using Storage.Services.Stock;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,7 +119,12 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddHealthChecks().AddDbContextCheck<ApplicationDbContext>("database");
 
 // Add controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+.AddJsonOptions(options =>
+{
+    // Allow enum values like "Storage" from frontend payloads.
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -163,6 +169,18 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.ExecuteSqlRaw(@"
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'zone_type_enum') THEN
+        CREATE TYPE zone_type_enum AS ENUM ('Storage', 'Production', 'Shipping', 'Returns', 'Maintenance');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'component_type_enum') THEN
+        CREATE TYPE component_type_enum AS ENUM ('SMD', 'ThroughHole', 'QFP', 'SOIC', 'DIP', 'Other');
+    END IF;
+END $$;
+");
         dbContext.Database.Migrate();
     }
     catch (Exception ex)
