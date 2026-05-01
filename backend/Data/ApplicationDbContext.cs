@@ -45,6 +45,10 @@ public class ApplicationDbContext : DbContext
             .HasIndex(x => x.Name)
             .IsUnique();
 
+        modelBuilder.Entity<ComponentType>()
+            .HasIndex(x => new { x.CategoryId, x.Name })
+            .IsUnique();
+
         modelBuilder.Entity<StockLocation>()
             .HasIndex(x => new { x.ComponentId, x.LocationId, x.BatchCode });
 
@@ -80,6 +84,12 @@ public class ApplicationDbContext : DbContext
             .WithMany()
             .HasForeignKey(x => x.ComponentTypeId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ComponentType>()
+            .HasOne(x => x.Category)
+            .WithMany()
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Component>()
             .HasOne<Supplier>()

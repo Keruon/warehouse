@@ -14,5 +14,13 @@ public class ComponentMappingProfile : Profile
         CreateMap<ComponentType, ComponentTypeResponse>();
         CreateMap<CreateComponentTypeRequest, ComponentType>();
         CreateMap<UpdateComponentTypeRequest, ComponentType>();
+
+        CreateMap<ComponentCategory, ComponentCategoryResponse>();
+        CreateMap<CreateComponentCategoryRequest, ComponentCategory>();
+        CreateMap<UpdateComponentCategoryRequest, ComponentCategory>();
+
+        CreateMap<Supplier, SupplierResponse>();
+        CreateMap<CreateSupplierRequest, Supplier>();
+        CreateMap<UpdateSupplierRequest, Supplier>();
     }
 }

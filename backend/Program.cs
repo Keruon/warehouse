@@ -9,6 +9,7 @@ using Storage.Data;
 using Storage.Data.Repositories;
 using Storage.Helpers;
 using Storage.Services.Auth;
+using Storage.Services.Stock;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,7 @@ builder.Services.AddScoped<IStockLocationRepository, StockLocationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<JwtTokenHelper>();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));

@@ -9,6 +9,11 @@ public class ComponentType
     [Column(TypeName = "uuid")]
     public Guid Id { get; set; }
 
+    [ForeignKey("Category")]
+    [Column(TypeName = "uuid")]
+    public Guid CategoryId { get; set; }
+    public ComponentCategory? Category { get; set; }
+
     public string Name { get; set; }
     
     [Column(TypeName = "component_type_enum")]

@@ -28,6 +28,7 @@ public class CreateComponentTypeRequestValidator : AbstractValidator<CreateCompo
 {
     public CreateComponentTypeRequestValidator()
     {
+        RuleFor(x => x.CategoryId).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Type).IsInEnum();
     }
@@ -50,5 +51,38 @@ public class ComponentSearchRequestValidator : AbstractValidator<ComponentSearch
         RuleFor(x => x.SortDirection)
             .Must(direction => direction == null || direction.Equals("asc", StringComparison.OrdinalIgnoreCase) || direction.Equals("desc", StringComparison.OrdinalIgnoreCase))
             .WithMessage("SortDirection must be 'asc' or 'desc'.");
+    }
+}
+
+public class CreateComponentCategoryRequestValidator : AbstractValidator<CreateComponentCategoryRequest>
+{
+    public CreateComponentCategoryRequestValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+    }
+}
+
+public class UpdateComponentCategoryRequestValidator : AbstractValidator<UpdateComponentCategoryRequest>
+{
+    public UpdateComponentCategoryRequestValidator()
+    {
+        Include(new CreateComponentCategoryRequestValidator());
+    }
+}
+
+public class CreateSupplierRequestValidator : AbstractValidator<CreateSupplierRequest>
+{
+    public CreateSupplierRequestValidator()
+    {
+        RuleFor(x => x.Code).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(150);
+    }
+}
+
+public class UpdateSupplierRequestValidator : AbstractValidator<UpdateSupplierRequest>
+{
+    public UpdateSupplierRequestValidator()
+    {
+        Include(new CreateSupplierRequestValidator());
     }
 }
