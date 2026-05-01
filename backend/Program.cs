@@ -5,15 +5,52 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NpgsqlTypes;
+using Serilog;
+using Serilog.Sinks.PostgreSQL;
 using Storage.Data;
 using Storage.Data.Repositories;
 using Storage.Helpers;
+using Storage.Middleware;
+using Storage.Services;
 using Storage.Services.Auth;
 using Storage.Services.Search;
 using Storage.Services.Stock;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext();
+
+    if (!context.HostingEnvironment.IsDevelopment())
+    {
+        var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            var columns = new Dictionary<string, ColumnWriterBase>
+            {
+                ["message"] = new RenderedMessageColumnWriter(),
+                ["message_template"] = new MessageTemplateColumnWriter(),
+                ["level"] = new LevelColumnWriter(true, NpgsqlDbType.Varchar),
+                ["raise_date"] = new TimestampColumnWriter(),
+                ["exception"] = new ExceptionColumnWriter(),
+                ["properties"] = new LogEventSerializedColumnWriter(),
+                ["props_test"] = new PropertiesColumnWriter(NpgsqlDbType.Jsonb)
+            };
+
+            configuration.WriteTo.PostgreSQL(
+                connectionString,
+                context.Configuration["SerilogPostgreSql:TableName"] ?? "application_logs",
+                columns,
+                needAutoCreateTable: true);
+        }
+    }
+});
 
 // Add DbContext services
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -26,6 +63,7 @@ builder.Services.AddScoped<IStockLocationRepository, StockLocationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<JwtTokenHelper>();
@@ -96,6 +134,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
+app.UseMiddleware<ErrorHandlingMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
