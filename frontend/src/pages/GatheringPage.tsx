@@ -127,10 +127,10 @@ export default function GatheringPage(): React.ReactElement {
             allowClear
             onChange={(value) => {
               if (value) {
-                setActiveProjectMutation.mutate(value);
+                void setActiveProjectMutation.mutateAsync(value);
               }
             }}
-            onClear={() => clearProjectMutation.mutate()}
+            onClear={() => { void clearProjectMutation.mutateAsync(undefined); }}
           />
           {inactiveProjects.length > 0 ? (
             <Tag color="default">{inactiveProjects.length} inactive project(s) hidden</Tag>

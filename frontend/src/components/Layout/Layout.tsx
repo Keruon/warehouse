@@ -70,7 +70,7 @@ export default function Layout(): React.ReactElement {
               <Tag>No active project</Tag>
             )}
             {activeProjectQuery.data?.activeProject ? (
-              <Button size="small" onClick={() => clearProjectMutation.mutate()} loading={clearProjectMutation.isPending}>
+              <Button size="small" onClick={() => { void clearProjectMutation.mutateAsync(undefined); }} loading={clearProjectMutation.isPending}>
                 Clear Project
               </Button>
             ) : null}
