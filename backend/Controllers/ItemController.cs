@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Storage.Data;
-using Storage.Data.Models;
 
 namespace Storage.Controllers
 {
@@ -9,43 +8,30 @@ namespace Storage.Controllers
     [ApiController]
     public class ItemController : ControllerBase
     {
-        private readonly StorageDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public ItemController(StorageDbContext context)
+        public ItemController(ApplicationDbContext context)
         {
             _context = context;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Item>>> GetItems([FromQuery] string? search = null,
-            [FromQuery] string? type = null,
-            [FromQuery] string? manufacturer = null,
+        public async Task<ActionResult<IEnumerable<Component>>> GetItems([FromQuery] string? search = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
-            var query = _context.Items
-                .Include(i => i.Location)
-                .Include(i => i.ComponentParameter)
+            var query = _context.Components
+                .Include(c => c.ComponentType)
                 .AsNoTracking();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(i => i.ItemCode.Contains(search) || i.Description.Contains(search));
-            }
-
-            if (!string.IsNullOrWhiteSpace(type))
-            {
-                query = query.Where(i => i.ComponentParameter?.Type.Contains(type) == true);
-            }
-
-            if (!string.IsNullOrWhiteSpace(manufacturer))
-            {
-                query = query.Where(i => i.ComponentParameter?.Manufacturer.Contains(manufacturer) == true);
+                query = query.Where(c => c.PartNumber.Contains(search));
             }
 
             var totalItems = await query.CountAsync();
             var items = await query
-                .OrderBy(i => i.LocationId)
+                .OrderBy(c => c.PartNumber)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -60,60 +46,60 @@ namespace Storage.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Item>> CreateItem([FromBody] Item item)
+        public async Task<ActionResult<Component>> CreateItem([FromBody] Component component)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            item.CreatedAt = DateTime.UtcNow;
-            item.UpdatedAt = DateTime.UtcNow;
-            item.LocationId = -1; // Should be set by location
+            component.CreatedAt = DateTime.UtcNow;
+            component.ModifiedAt = DateTime.UtcNow;
 
-            await _context.Items.AddAsync(item);
+            await _context.Components.AddAsync(component);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetItems), new { page = 1 }, item.Id);
+            return CreatedAtAction(nameof(GetItemById), new { id = component.Id }, component);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItem(int id, [FromBody] Item item)
+        public async Task<IActionResult> UpdateItem(Guid id, [FromBody] Component component)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var itemEntity = await _context.Items.FindAsync(id);
-            if (itemEntity == null)
+            var componentEntity = await _context.Components.FindAsync(id);
+            if (componentEntity == null)
                 return NotFound();
 
-            itemEntity.Quantity = item.Quantity;
-            itemEntity.UpdatedAt = DateTime.UtcNow;
+            componentEntity.PartNumber = component.PartNumber;
+            componentEntity.QuantityOnHand = component.QuantityOnHand;
+            componentEntity.QuantityReserved = component.QuantityReserved;
+            componentEntity.QuantityCommitted = component.QuantityCommitted;
+            componentEntity.ModifiedAt = DateTime.UtcNow;
 
-            // Audit log would be created here
             await _context.SaveChangesAsync();
 
-            return Ok(itemEntity);
+            return Ok(componentEntity);
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteItem(int id)
+        public async Task<IActionResult> DeleteItem(Guid id)
         {
-            var itemEntity = await _context.Items.FindAsync(id);
-            if (itemEntity == null)
+            var componentEntity = await _context.Components.FindAsync(id);
+            if (componentEntity == null)
                 return NotFound();
 
-            await _context.Items.RemoveAsync(itemEntity);
+            _context.Components.Remove(componentEntity);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Item>> GetItemById(int id)
+        public async Task<ActionResult<Component>> GetItemById(Guid id)
         {
-            var item = await _context.Items
-                .Include(i => i.Location)
-                .Include(i => i.ComponentParameter)
-                .FirstOrDefaultAsync(i => i.Id == id);
+            var item = await _context.Components
+                .Include(c => c.ComponentType)
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             if (item == null)
                 return NotFound();
@@ -122,25 +108,24 @@ namespace Storage.Controllers
         }
 
         [HttpPost("{id}/receive")]
-        public async Task<IActionResult> ReceiveItem(int id, [FromBody] ReceiveRequest request)
+        public async Task<IActionResult> ReceiveItem(Guid id, [FromBody] ReceiveRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var item = await _context.Items.FindAsync(id);
-            if (item == null)
+            var component = await _context.Components.FindAsync(id);
+            if (component == null)
                 return NotFound();
 
-            // Logic for receiving and updating quantities
-            item.Quantity += request.Quantity;
-            item.UpdatedAt = DateTime.UtcNow;
+            component.QuantityOnHand += request.Quantity;
+            component.ModifiedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { Message = "Item received successfully", Quantity = item.Quantity });
+            return Ok(new { Message = "Item received successfully", Quantity = component.QuantityOnHand });
         }
 
-        private class ReceiveRequest
+        public class ReceiveRequest
         {
             public int Quantity { get; set; }
             public DateTime ReceivedAt { get; set; }

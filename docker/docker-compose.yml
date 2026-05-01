@@ -1,0 +1,58 @@
+name: storage-stack
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: storage-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-storage}
+      POSTGRES_USER: ${POSTGRES_USER:-storage}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-storagepass}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../backend/archive/create_db.sql:/docker-entrypoint-initdb.d/01-create_db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-storage} -d ${POSTGRES_DB:-storage}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    container_name: storage-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-storage};Username=${POSTGRES_USER:-storage};Password=${POSTGRES_PASSWORD:-storagepass}
+    ports:
+      - "${BACKEND_PORT:-5000}:8080"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000}
+    container_name: storage-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      PORT: 3000
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+
+volumes:
+  postgres-data:

@@ -1,12 +1,13 @@
-using Storage.Data;
-using Storage.Data.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Storage.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add DbContext services
-builder.Services.AddDbContext<StorageDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add CORS
@@ -27,7 +28,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "default")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"] ?? "default_key_for_local_development_only")),
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "StorageAPI",
             ValidateAudience = true,
@@ -67,7 +68,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         // Initialize with sample data if needed
-        // var context = services.GetRequiredService<StorageDbContext>();
+        // var context = services.GetRequiredService<ApplicationDbContext>();
         // await InitializeSampleData(context);
     }
     catch (Exception ex)
