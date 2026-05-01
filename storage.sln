@@ -1,8 +1,14 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "backend", "backend\backend.csproj", "{B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{982C23F2-B5FF-484B-B0AE-B67A82115B84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Backend.IntegrationTests", "tests\Storage.Backend.IntegrationTests\Storage.Backend.IntegrationTests.csproj", "{3E7C98B5-1ADB-44E3-BC35-08BB0E7620B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Backend.UnitTests", "tests\Storage.Backend.UnitTests\Storage.Backend.UnitTests.csproj", "{86FF53AA-F811-41EE-B51C-DF2914B6CD59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,11 +20,23 @@ Global
 		{B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E7C98B5-1ADB-44E3-BC35-08BB0E7620B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E7C98B5-1ADB-44E3-BC35-08BB0E7620B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E7C98B5-1ADB-44E3-BC35-08BB0E7620B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E7C98B5-1ADB-44E3-BC35-08BB0E7620B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86FF53AA-F811-41EE-B51C-DF2914B6CD59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86FF53AA-F811-41EE-B51C-DF2914B6CD59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86FF53AA-F811-41EE-B51C-DF2914B6CD59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86FF53AA-F811-41EE-B51C-DF2914B6CD59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A225034B-F5AD-4EC7-AFA6-299CDF49A7FB}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3E7C98B5-1ADB-44E3-BC35-08BB0E7620B7} = {982C23F2-B5FF-484B-B0AE-B67A82115B84}
+		{86FF53AA-F811-41EE-B51C-DF2914B6CD59} = {982C23F2-B5FF-484B-B0AE-B67A82115B84}
 	EndGlobalSection
 EndGlobal
