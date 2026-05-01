@@ -43,7 +43,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-export default function ItemsPage(): React.ReactElement {
+export default function InventoryPage(): React.ReactElement {
   const queryClient = useQueryClient();
   const { isAdmin } = useAuth();
   const [messageApi, contextHolder] = message.useMessage();
@@ -153,7 +153,7 @@ export default function ItemsPage(): React.ReactElement {
 
       <Space style={{ width: '100%', justifyContent: 'space-between' }}>
         <Title level={3} style={{ margin: 0 }}>
-          Component Search
+          Inventory
         </Title>
 
         {isAdmin ? (

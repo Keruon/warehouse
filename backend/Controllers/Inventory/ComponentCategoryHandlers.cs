@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Storage.Data;
 using Storage.Helpers.DTOs;
 
-namespace Storage.Controllers.Items;
+namespace Storage.Controllers.Inventory;
 
 public sealed record CreateComponentCategoryCommand(CreateComponentCategoryRequest Request) : IRequest<ComponentCategoryResponse>;
 public sealed record UpdateComponentCategoryCommand(Guid Id, UpdateComponentCategoryRequest Request) : IRequest<ComponentCategoryResponse>;

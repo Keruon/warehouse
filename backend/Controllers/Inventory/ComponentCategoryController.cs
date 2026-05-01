@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Storage.Helpers.DTOs;
 
-namespace Storage.Controllers.Items;
+namespace Storage.Controllers.Inventory;
 
 [ApiController]
 [Route("api/component-categories")]

@@ -6,7 +6,7 @@ import Layout from './components/Layout/Layout';
 import ProtectedRoute from './components/Layout/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import ItemsPage from './pages/ItemsPage';
+import InventoryPage from './pages/InventoryPage';
 import UsersPage from './pages/UsersPage';
 import ReceivingPage from './pages/ReceivingPage';
 import GatheringPage from './pages/GatheringPage';
@@ -28,7 +28,8 @@ export default function App(): React.ReactElement {
               <Route element={<Layout />}>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/items" element={<ItemsPage />} />
+                <Route path="/items" element={<Navigate to="/inventory" replace />} />
+                <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/receiving" element={<ReceivingPage />} />
                 <Route path="/gathering" element={<GatheringPage />} />
                 <Route path="/stock-moves" element={<StockMovesPage />} />

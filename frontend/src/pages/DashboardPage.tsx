@@ -90,7 +90,7 @@ export default function DashboardPage(): React.ReactElement {
         <Space wrap>
           <Button type="primary" onClick={() => navigate('/receiving')}>Receive</Button>
           <Button onClick={() => navigate('/gathering')}>Gather</Button>
-          <Button onClick={() => navigate('/items')}>Search</Button>
+          <Button onClick={() => navigate('/inventory')}>Search</Button>
         </Space>
       </Card>
 

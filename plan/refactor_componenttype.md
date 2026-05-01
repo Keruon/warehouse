@@ -19,8 +19,8 @@ Refactor ComponentType from a combined name to explicit fields (`kind`, `value`,
 - `/home/keruo/storage/backend/Data/ApplicationDbContext.cs` - indexes, uniqueness, query/filter configuration updates
 - `/home/keruo/storage/backend/Helpers/DTOs/ComponentTypeDtos.cs` - request/response contract changes
 - `/home/keruo/storage/backend/Helpers/Validators/ComponentValidators.cs` - enforce required field rules and length constraints
-- `/home/keruo/storage/backend/Controllers/Items/ComponentTypeController.cs` - endpoint request binding updates
-- `/home/keruo/storage/backend/Controllers/Items/ComponentTypeHandlers.cs` - duplicate checks, ordering/filtering updates
+- `/home/keruo/storage/backend/Controllers/Inventory/ComponentTypeController.cs` - endpoint request binding updates
+- `/home/keruo/storage/backend/Controllers/Inventory/ComponentTypeHandlers.cs` - duplicate checks, ordering/filtering updates
 - `/home/keruo/storage/backend/Services/Search/SearchService.cs` - remove dependence on legacy combined name text
 - `/home/keruo/storage/backend/Models/Component.cs` - re-evaluate `ComponentTypeName` cached display behavior
 - `/home/keruo/storage/backend/Helpers/MappingProfiles/ComponentMappingProfile.cs` - mappings for new fields
@@ -32,7 +32,7 @@ Refactor ComponentType from a combined name to explicit fields (`kind`, `value`,
 - `/home/keruo/storage/frontend/src/components/Admin/ComponentTypesManager.tsx` - create/edit/list UI changes
 - `/home/keruo/storage/frontend/src/components/Warehouse/ComponentSearch.tsx` - label/filter rendering updates
 - `/home/keruo/storage/frontend/src/components/Warehouse/ComponentDetailDrawer.tsx` - display formatting updates
-- `/home/keruo/storage/frontend/src/pages/ItemsPage.tsx` - component type selector labels and mapping
+- `/home/keruo/storage/frontend/src/pages/InventoryPage.tsx` - component type selector labels and mapping
 
 **Verification**
 1. Schema verification: run migration on dev DB, confirm `ComponentTypes` contains `Kind/Value/Footprint` with expected constraints/indexes and no legacy `Name` dependence.

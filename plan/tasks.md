@@ -230,23 +230,23 @@
   - CRUD operations with hierarchical parent-child support (up to 5 levels)
   - Validate CategoryLevel and ParentCategoryId consistency
 - Controller: `GET/POST/PUT/DELETE /api/component-categories`
-- Files: `backend/Controllers/Items/ComponentCategoryController.cs`, handlers
+- Files: `backend/Controllers/Inventory/ComponentCategoryController.cs`, handlers
 
 ### Task 5.2: Component type CRUD
 - Mediator handlers + controller for ComponentType:
   - CRUD with CategoryId FK validation
   - Search by PartNumber, Manufacturer, StockSystemCode
 - Controller: `GET/POST/PUT/DELETE /api/component-types`
-- Files: `backend/Controllers/Items/ComponentTypeController.cs`, handlers
+- Files: `backend/Controllers/Inventory/ComponentTypeController.cs`, handlers
 
 ### Task 5.3: Supplier CRUD
 - Mediator handlers + controller for Supplier:
   - CRUD with unique Code constraint enforcement
 - Controller: `GET/POST/PUT/DELETE /api/suppliers`
-- Files: `backend/Controllers/Items/SupplierController.cs`, handlers
+- Files: `backend/Controllers/Inventory/SupplierController.cs`, handlers
 
 ### Task 5.4: Component (inventory item) CRUD
-- Rewrite `ItemController.cs` → move to `backend/Controllers/Items/ComponentController.cs`
+- Rewrite `ItemController.cs` → move to `backend/Controllers/Inventory/ComponentController.cs`
 - Use ApplicationDbContext and new models
 - Mediator handlers:
   - CreateComponentCommand — validate ComponentTypeId, optional SupplierId
@@ -255,7 +255,7 @@
   - SearchComponentsQuery — filter by type, category, manufacturer, partNumber, supplier; paginated
 - Controller: `GET/POST/PUT/DELETE /api/components`
 - Delete old `backend/Controllers/ItemController.cs`
-- Files: `backend/Controllers/Items/ComponentController.cs`, handlers
+- Files: `backend/Controllers/Inventory/ComponentController.cs`, handlers
 
 ### Task 5.5: Stock operations service
 - Create `backend/Services/Stock/IStockService.cs` — interface:
@@ -273,14 +273,14 @@
 - Files: `backend/Services/Stock/IStockService.cs`, `backend/Services/Stock/StockService.cs`
 
 ### Task 5.6: Stock operations controller
-- Create `backend/Controllers/Items/StockController.cs`:
+- Create `backend/Controllers/Inventory/StockController.cs`:
   - `POST /api/stock/receive` — receive stock at a location
   - `POST /api/stock/gather` — gather (pick) stock from a location
   - `POST /api/stock/transfer` — transfer between locations
   - `GET /api/stock/component/{id}` — stock levels across all locations
   - `GET /api/stock/location/{id}` — inventory at a specific location
   - `POST /api/stock/bulk-transfer` — bulk transfer multiple components between locations
-- Files: `backend/Controllers/Items/StockController.cs`
+- Files: `backend/Controllers/Inventory/StockController.cs`
 
 ---
 
@@ -300,10 +300,10 @@
 - Files: `backend/Services/Search/ISearchService.cs`, `backend/Services/Search/SearchService.cs`
 
 ### Task 6.2: Search controller
-- Create `backend/Controllers/Items/SearchController.cs`:
+- Create `backend/Controllers/Inventory/SearchController.cs`:
   - `GET /api/search/components?q=&type=&manufacturer=&category=` — search components
   - `GET /api/search/locations?areaId=&shelfId=&hasStock=` — search locations
-- Files: `backend/Controllers/Items/SearchController.cs`
+- Files: `backend/Controllers/Inventory/SearchController.cs`
 
 ---
 

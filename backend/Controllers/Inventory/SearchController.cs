@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Storage.Helpers.DTOs;
 using Storage.Services.Search;
 
-namespace Storage.Controllers.Items;
+namespace Storage.Controllers.Inventory;
 
 [ApiController]
 [Route("api/search")]

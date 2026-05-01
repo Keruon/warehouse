@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Storage.Data;
 using Storage.Helpers.DTOs;
 
-namespace Storage.Controllers.Items;
+namespace Storage.Controllers.Inventory;
 
 public sealed record CreateSupplierCommand(CreateSupplierRequest Request) : IRequest<SupplierResponse>;
 public sealed record UpdateSupplierCommand(Guid Id, UpdateSupplierRequest Request) : IRequest<SupplierResponse>;

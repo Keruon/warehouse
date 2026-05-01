@@ -35,7 +35,7 @@ export default function Layout(): React.ReactElement {
 
   const allItems: NavItem[] = [
     { key: '/dashboard', label: <Link to="/dashboard">Dashboard</Link> },
-    { key: '/items', label: <Link to="/items">Items</Link> },
+    { key: '/inventory', label: <Link to="/inventory">Inventory</Link> },
     { key: '/receiving', label: <Link to="/receiving">Receiving</Link> },
     { key: '/gathering', label: <Link to="/gathering">Gathering</Link> },
     { key: '/stock-moves', label: <Link to="/stock-moves">Stock Moves</Link> },

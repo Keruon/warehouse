@@ -6,7 +6,7 @@ using Storage.Data;
 using Storage.Helpers.DTOs;
 using System.Linq;
 
-namespace Storage.Controllers.Items;
+namespace Storage.Controllers.Inventory;
 
 public sealed record CreateComponentCommand(CreateComponentRequest Request) : IRequest<ComponentResponse>;
 public sealed record UpdateComponentCommand(Guid Id, UpdateComponentRequest Request) : IRequest<ComponentResponse>;

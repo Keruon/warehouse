@@ -140,7 +140,7 @@
   ## 7. API Design
 
   ### RESTful Conventions
-  - **Nouns**: Plural nouns in paths (`/items`, `/locations`)
+  - **Nouns**: Plural nouns in paths (`/inventory`, `/locations`)
   - **Verbs**: Standard HTTP verbs (GET, POST, PUT, PATCH, DELETE)
   - **Status Codes**: Semantic HTTP codes
   - **Pagination**: Query parameters (`?page=1&pageSize=50`)

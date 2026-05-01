@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Storage.Helpers.DTOs;
 using Storage.Services.Stock;
 
-namespace Storage.Controllers.Items;
+namespace Storage.Controllers.Inventory;
 
 [ApiController]
 [Route("api/stock")]

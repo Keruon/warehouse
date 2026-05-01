@@ -53,7 +53,7 @@ The backend is fully implemented. The frontend uses a TypeScript React shell wit
 
 ## Phase 1 — Search & Component Browsing *(parallel with Phase 3 after Phase 0)*
 
-**Goal:** `ItemsPage` — full component search with filters, component detail drawer, stock overview, QR label.
+**Goal:** `InventoryPage` — full component search with filters, component detail drawer, stock overview, QR label.
 
 ### Task 1.1: Search service
 - Create `frontend/src/services/searchService.ts`
@@ -86,8 +86,8 @@ The backend is fully implemented. The frontend uses a TypeScript React shell wit
 - `QRCode` component (from `qrcode.react`) displaying the component's `StockSystemCode`
 - Print label button triggers browser `window.print()` scoped to the QR section
 
-### Task 1.6: ItemsPage
-- Create `frontend/src/pages/ItemsPage.tsx`
+### Task 1.6: InventoryPage
+- Create `frontend/src/pages/InventoryPage.tsx`
 - Compose `ComponentSearch` + `ComponentDetailDrawer`
 - Admin users see an **Add Component** button opening an Ant Design `Modal` with a creation form
 
@@ -287,7 +287,7 @@ The backend is fully implemented. The frontend uses a TypeScript React shell wit
 | `frontend/src/components/Admin/UsersManager.tsx` | User CRUD (shared between UsersPage and AdminPage) |
 | `frontend/src/pages/LoginPage.tsx` | Login form |
 | `frontend/src/pages/DashboardPage.tsx` | Stats cards + quick actions + recent audit |
-| `frontend/src/pages/ItemsPage.tsx` | Component search + detail drawer |
+| `frontend/src/pages/InventoryPage.tsx` | Component search + detail drawer |
 | `frontend/src/pages/ReceivingPage.tsx` | Guided receive workflow |
 | `frontend/src/pages/GatheringPage.tsx` | Guided gather workflow |
 | `frontend/src/pages/StockMovesPage.tsx` | Transfer + bulk transfer |
@@ -303,7 +303,7 @@ The backend is fully implemented. The frontend uses a TypeScript React shell wit
 1. Start backend (`dotnet run` in `backend/`) and frontend (`npm start` in `frontend/`); no console errors on load
 2. Navigate to root `/` → redirected to `/login`
 3. Login with admin credentials → redirected to `/dashboard`
-4. Navigate to `/items`, search by keyword → results load; click row → detail drawer shows stock and QR code
+4. Navigate to `/inventory`, search by keyword → results load; click row → detail drawer shows stock and QR code
 5. Complete a **receive** flow: find component → pick location → enter qty → verify stock count increments
 6. Complete a **gather** flow: pick component with stock → pick location from its current stock → reduce qty → verify
 7. Complete a **transfer**: select component, source location, destination location, qty → verify
