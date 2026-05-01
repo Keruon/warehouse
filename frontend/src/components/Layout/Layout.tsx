@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Layout as AntLayout, Menu, MenuProps, Space, Tag, Typography } from 'antd';
+import { Button, Layout as AntLayout, Menu, MenuProps, Select, Space, Tag, Typography } from 'antd';
 import useAuth from '../../hooks/useAuth';
-import { useActiveProject, useClearActiveProject } from '../../hooks/useProject';
+import { useActiveProject, useClearActiveProject, useProjects, useSetActiveProject } from '../../hooks/useProject';
 
 const { Header, Sider, Content } = AntLayout;
 const { Text } = Typography;
@@ -17,8 +17,15 @@ export default function Layout(): React.ReactElement {
   const navigate = useNavigate();
   const { currentUser, isAdmin, logout } = useAuth();
 
+  const projectsQuery = useProjects();
   const activeProjectQuery = useActiveProject();
+  const setActiveProjectMutation = useSetActiveProject();
   const clearProjectMutation = useClearActiveProject();
+  const activeProject = activeProjectQuery.data?.activeProject ?? null;
+
+  const activeProjects = (projectsQuery.data ?? []).filter((project) => project.isActive);
+  const activeProjectInList = activeProject ? (projectsQuery.data ?? []).find((project) => project.id === activeProject.id) : null;
+  const isStaleActiveProject = Boolean(activeProject && (!activeProjectInList || !activeProjectInList.isActive));
 
   const allItems: NavItem[] = [
     { key: '/dashboard', label: <Link to="/dashboard">Dashboard</Link> },
@@ -26,6 +33,7 @@ export default function Layout(): React.ReactElement {
     { key: '/receiving', label: <Link to="/receiving">Receiving</Link> },
     { key: '/gathering', label: <Link to="/gathering">Gathering</Link> },
     { key: '/stock-moves', label: <Link to="/stock-moves">Stock Moves</Link> },
+    { key: '/projects', label: <Link to="/projects">Projects</Link> },
     { key: '/users', label: <Link to="/users">Users</Link>, adminOnly: true },
     { key: '/admin', label: <Link to="/admin">Admin Panel</Link>, adminOnly: true },
   ];
@@ -49,17 +57,45 @@ export default function Layout(): React.ReactElement {
         <Header className="app-header">
           <Space>
             <Text strong>{currentUser?.username ?? 'Unknown user'}</Text>
-            {activeProjectQuery.data?.activeProject ? (
-              <Tag color="green">
-                Active Project: {activeProjectQuery.data.activeProject.name} ({activeProjectQuery.data.activeProject.code})
+            {activeProject ? (
+              <Tag color={isStaleActiveProject ? 'warning' : 'green'}>
+                Active Project: {activeProject.name} ({activeProject.code})
               </Tag>
             ) : (
               <Tag>No active project</Tag>
             )}
-            {activeProjectQuery.data?.activeProject ? (
-              <Button size="small" onClick={() => { void clearProjectMutation.mutateAsync(undefined); }} loading={clearProjectMutation.isPending}>
+
+            <Select
+              placeholder="Quick switch project"
+              style={{ minWidth: 260 }}
+              value={activeProject?.id}
+              loading={projectsQuery.isLoading || activeProjectQuery.isLoading}
+              allowClear
+              options={[
+                ...(isStaleActiveProject && activeProject
+                  ? [{ label: `${activeProject.name} (${activeProject.code}) - unavailable`, value: activeProject.id, disabled: true }]
+                  : []),
+                ...activeProjects.map((project) => ({
+                  label: `${project.name} (${project.code})`,
+                  value: project.id,
+                })),
+              ]}
+              onChange={(value) => {
+                if (value) {
+                  void setActiveProjectMutation.mutateAsync(value);
+                }
+              }}
+              onClear={() => { void clearProjectMutation.mutateAsync(undefined); }}
+            />
+
+            {activeProject ? (
+              <Button size="small" onClick={() => { void clearProjectMutation.mutateAsync(undefined); }} loading={clearProjectMutation.isPending} disabled={setActiveProjectMutation.isPending}>
                 Clear Project
               </Button>
+            ) : null}
+
+            {isStaleActiveProject ? (
+              <Tag color="warning">Selected project is no longer active.</Tag>
             ) : null}
           </Space>
           <Button onClick={handleLogout}>Logout</Button>

@@ -36,11 +36,17 @@ export default function GatheringPage(): React.ReactElement {
 
   const projectsQuery = useProjects();
   const activeProjectQuery = useActiveProject();
+  const activeProject = activeProjectQuery.data?.activeProject ?? null;
+
+  const selectableProjects = (projectsQuery.data ?? []).filter((project) => project.isActive);
+  const inactiveProjects = (projectsQuery.data ?? []).filter((project) => !project.isActive);
+  const activeProjectInList = activeProject ? (projectsQuery.data ?? []).find((project) => project.id === activeProject.id) : null;
+  const isStaleActiveProject = Boolean(activeProject && (!activeProjectInList || !activeProjectInList.isActive));
 
   const projectInventoryQuery = useQuery<LocationInventoryItemResponse[]>({
     queryKey: queryKeys.projectInventory(activeProjectQuery.data?.activeProject?.id),
     queryFn: () => getStockAtLocation(activeProjectQuery.data!.activeProject!.id),
-    enabled: !!activeProjectQuery.data?.activeProject?.id,
+    enabled: !!activeProjectQuery.data?.activeProject?.id && !isStaleActiveProject,
   });
 
   const gatherMutation = useGatherStock();
@@ -72,9 +78,6 @@ export default function GatheringPage(): React.ReactElement {
 
   const selectedStockLevel = stockQuery.data?.find((s) => s.locationId === locationId);
   const maxQty = selectedStockLevel?.quantity ?? undefined;
-  const activeProject = activeProjectQuery.data?.activeProject ?? null;
-  const selectableProjects = (projectsQuery.data ?? []).filter((project) => project.isActive);
-  const inactiveProjects = (projectsQuery.data ?? []).filter((project) => !project.isActive);
 
   const handleReturnLine = async (line: LocationInventoryItemResponse) => {
     const qty = Math.max(1, Math.min(returnQtyByLine[line.stockLocationId] ?? line.quantity, line.quantity));
@@ -98,10 +101,15 @@ export default function GatheringPage(): React.ReactElement {
             style={{ minWidth: 280 }}
             value={activeProject?.id}
             loading={projectsQuery.isLoading}
-            options={selectableProjects.map((project) => ({
-              label: `${project.name} (${project.code})`,
-              value: project.id,
-            }))}
+            options={[
+              ...(isStaleActiveProject && activeProject
+                ? [{ label: `${activeProject.name} (${activeProject.code}) - unavailable`, value: activeProject.id, disabled: true }]
+                : []),
+              ...selectableProjects.map((project) => ({
+                label: `${project.name} (${project.code})`,
+                value: project.id,
+              })),
+            ]}
             allowClear
             onChange={(value) => {
               if (value) {
@@ -114,10 +122,13 @@ export default function GatheringPage(): React.ReactElement {
             <Tag color="default">{inactiveProjects.length} inactive project(s) hidden</Tag>
           ) : null}
           {activeProject ? (
-            <Tag color="green">Active: {activeProject.name} ({activeProject.code})</Tag>
+            <Tag color={isStaleActiveProject ? 'warning' : 'green'}>Active: {activeProject.name} ({activeProject.code})</Tag>
           ) : (
             <Tag>No active project</Tag>
           )}
+          {isStaleActiveProject ? (
+            <Tag color="warning">Selected project is no longer active.</Tag>
+          ) : null}
           {activeProject ? (
             <Popconfirm
               title="Close project"
@@ -126,22 +137,22 @@ export default function GatheringPage(): React.ReactElement {
               cancelText="Cancel"
               onConfirm={handleCloseProject}
             >
-              <Button danger loading={closeProjectMutation.isPending}>Close Project</Button>
+              <Button danger loading={closeProjectMutation.isPending} disabled={isStaleActiveProject}>Close Project</Button>
             </Popconfirm>
           ) : null}
         </Space>
       </Card>
 
       <Alert
-        type={activeProject ? 'success' : 'warning'}
+        type={activeProject && !isStaleActiveProject ? 'success' : 'warning'}
         showIcon
         style={{ marginBottom: 16 }}
-        message={activeProject
+        message={activeProject && !isStaleActiveProject
           ? `Gather target: ${activeProject.name} (${activeProject.code})`
-          : 'No active project selected'}
-        description={activeProject
+          : 'No valid active project selected'}
+        description={activeProject && !isStaleActiveProject
           ? 'Gathered stock is moved into the active project location and can be returned later per line.'
-          : 'Gathering will remove stock from warehouse only.'}
+          : 'Select an active project to keep project inventory and return flows in sync.'}
       />
 
       <Steps
@@ -233,7 +244,7 @@ export default function GatheringPage(): React.ReactElement {
         </div>
       )}
 
-      {activeProject ? (
+      {activeProject && !isStaleActiveProject ? (
         <Card title="Project Inventory" size="small" style={{ marginTop: 24 }}>
           <Table<LocationInventoryItemResponse>
             rowKey={(row) => row.stockLocationId}
