@@ -14,7 +14,7 @@ public sealed class UpdateShelfRequest : CreateShelfRequest
     public bool IsActive { get; set; } = true;
 }
 
-public sealed class ShelfResponse
+public class ShelfResponse
 {
     public Guid Id { get; set; }
     public Guid AreaId { get; set; }
@@ -23,4 +23,10 @@ public sealed class ShelfResponse
     public decimal? WeightLimitKg { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; }
+    public int LocationCount { get; set; }
+}
+
+public sealed class ShelfDetailsResponse : ShelfResponse
+{
+    public IReadOnlyList<LocationResponse> Locations { get; set; } = [];
 }
