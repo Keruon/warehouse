@@ -1,7 +1,7 @@
 # Backend & Database Development Tasks
 
 > Warehouse Stock Management System — Backend & DB task breakdown.
-> Architecture: ASP.NET Core 8.0, Clean Architecture, MediatR CQRS, EF Core (PostgreSQL), JWT Auth.
+> Architecture: ASP.NET Core 8.0, Clean Architecture, Mediator CQRS, EF Core (PostgreSQL), JWT Auth.
 > Scope: Single-tenant. EF Core code-first migrations (discard create_db.sql).
 
 ---
@@ -45,7 +45,7 @@
 - Files: `backend/Data/ApplicationDbContext.cs`
 
 ### Task 1.6: Project configuration files
-- Verify/create `backend/backend.csproj` with required NuGet packages: MediatR, FluentValidation, AutoMapper, EF Core, Npgsql, BCrypt.Net, Serilog, JWT
+- Verify/create `backend/backend.csproj` with required NuGet packages: Mediator, FluentValidation, AutoMapper, EF Core, Npgsql, BCrypt.Net, Serilog, JWT
 - Create `backend/appsettings.json` with sections: ConnectionStrings (PostgreSQL), JwtSettings (Issuer, Audience, SecretKey, AccessTokenExpirationMinutes, RefreshTokenExpirationDays), Serilog config
 - Create `backend/appsettings.Development.json` with local dev overrides
 - Files: `backend/backend.csproj`, `backend/appsettings.json`, `backend/appsettings.Development.json`
@@ -170,8 +170,8 @@
 > Goal: Full CRUD for the warehouse hierarchy. Admin-only operations.
 > Depends on: Phase 2. Parallel with Phase 3.
 
-### Task 4.1: Area MediatR commands and queries
-- Create `backend/Controllers/Areas/` handlers using MediatR CQRS:
+### Task 4.1: Area Mediator commands and queries
+- Create `backend/Controllers/Areas/` handlers using Mediator CQRS:
   - `CreateAreaCommand` + handler — validate, create, audit log
   - `UpdateAreaCommand` + handler — validate, update, audit log
   - `DeleteAreaCommand` + handler — soft-delete, check for child shelves, audit log
@@ -188,7 +188,7 @@
   - `DELETE /api/areas/{id}` — soft-delete area (Admin)
 - Files: `backend/Controllers/Areas/AreaController.cs`
 
-### Task 4.3: Shelf MediatR commands and queries
+### Task 4.3: Shelf Mediator commands and queries
 - Create handlers for shelf CRUD following same pattern as Areas
 - Include validation: AreaId must exist, CapacityCount > 0
 - Queries should include location count per shelf
@@ -203,7 +203,7 @@
   - `DELETE /api/shelves/{id}` — soft-delete (Admin), check for child locations
 - Files: `backend/Controllers/Shelves/ShelfController.cs`
 
-### Task 4.5: Location MediatR commands and queries
+### Task 4.5: Location Mediator commands and queries
 - Create handlers for location CRUD
 - Include validation: ShelfId must exist, BinX/BinY uniqueness per shelf
 - Queries should include stock summary per location
@@ -226,21 +226,21 @@
 > Depends on: Phase 2, Phase 4 (locations must exist for stock operations).
 
 ### Task 5.1: Component category CRUD
-- MediatR handlers + controller for ComponentCategory:
+- Mediator handlers + controller for ComponentCategory:
   - CRUD operations with hierarchical parent-child support (up to 5 levels)
   - Validate CategoryLevel and ParentCategoryId consistency
 - Controller: `GET/POST/PUT/DELETE /api/component-categories`
 - Files: `backend/Controllers/Items/ComponentCategoryController.cs`, handlers
 
 ### Task 5.2: Component type CRUD
-- MediatR handlers + controller for ComponentType:
+- Mediator handlers + controller for ComponentType:
   - CRUD with CategoryId FK validation
   - Search by PartNumber, Manufacturer, StockSystemCode
 - Controller: `GET/POST/PUT/DELETE /api/component-types`
 - Files: `backend/Controllers/Items/ComponentTypeController.cs`, handlers
 
 ### Task 5.3: Supplier CRUD
-- MediatR handlers + controller for Supplier:
+- Mediator handlers + controller for Supplier:
   - CRUD with unique Code constraint enforcement
 - Controller: `GET/POST/PUT/DELETE /api/suppliers`
 - Files: `backend/Controllers/Items/SupplierController.cs`, handlers
@@ -248,7 +248,7 @@
 ### Task 5.4: Component (inventory item) CRUD
 - Rewrite `ItemController.cs` → move to `backend/Controllers/Items/ComponentController.cs`
 - Use ApplicationDbContext and new models
-- MediatR handlers:
+- Mediator handlers:
   - CreateComponentCommand — validate ComponentTypeId, optional SupplierId
   - UpdateComponentCommand — update metadata (not quantity — that's via stock ops)
   - GetComponentQuery — include type info, stock locations, supplier
