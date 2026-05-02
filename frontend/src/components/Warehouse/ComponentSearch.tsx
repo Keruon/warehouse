@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button, Card, Col, Form, Input, Row, Select, Space, Table, Typography } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import {
@@ -8,6 +9,7 @@ import {
   ComponentTypeResponse,
   SupplierResponse,
 } from '../../types/inventory';
+import { searchCategories } from '../../services/categoryService';
 
 const { Text } = Typography;
 
@@ -44,6 +46,16 @@ export default function ComponentSearch({
   componentTypes,
   suppliers,
 }: ComponentSearchProps): React.ReactElement {
+  const [categorySearch, setCategorySearch] = useState('');
+  const categorySearchQuery = useQuery({
+    queryKey: ['category-search', categorySearch],
+    queryFn: () => searchCategories(categorySearch),
+    enabled: categorySearch.length >= 3,
+  });
+
+  const categoryOptions = categorySearch.length >= 3
+    ? (categorySearchQuery.data ?? []).map((c) => ({ value: c.id, label: c.name }))
+    : categories.map((c) => ({ value: c.id, label: c.name }));
   const componentTypeOptions = componentTypes.map((option) => ({
     value: option.id,
     label: [option.kind, option.value, option.footprint].filter((part) => Boolean(part && part.trim().length > 0)).join(' '),
@@ -125,12 +137,12 @@ export default function ComponentSearch({
                   <Select
                     allowClear
                     showSearch
-                    filterOption={(input, option) =>
-                      (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
-                    }
+                    filterOption={false}
+                    onSearch={(v) => setCategorySearch(v)}
+                    notFoundContent={categorySearch.length > 0 && categorySearch.length < 3 ? 'Type 3+ characters to search' : 'No results'}
                     placeholder="All categories"
                     value={filters.categoryId}
-                    options={categories.map((option) => ({ value: option.id, label: option.name }))}
+                    options={categoryOptions}
                     onChange={(value) => onFiltersChange({ ...filters, categoryId: value || undefined })}
                   />
                 </Form.Item>

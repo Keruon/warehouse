@@ -11,7 +11,7 @@ public sealed record CreateComponentCategoryCommand(CreateComponentCategoryReque
 public sealed record UpdateComponentCategoryCommand(Guid Id, UpdateComponentCategoryRequest Request) : IRequest<ComponentCategoryResponse>;
 public sealed record DeleteComponentCategoryCommand(Guid Id) : IRequest<bool>;
 public sealed record GetComponentCategoryByIdQuery(Guid Id) : IRequest<ComponentCategoryResponse?>;
-public sealed record GetComponentCategoriesQuery(PagedQuery PagedQuery, Guid? ParentId, bool? IsActive) : IRequest<PaginatedResponse<ComponentCategoryResponse>>;
+public sealed record GetComponentCategoriesQuery(PagedQuery PagedQuery, Guid? ParentId, bool? IsActive, string? Search) : IRequest<PaginatedResponse<ComponentCategoryResponse>>;
 
 public sealed class CreateComponentCategoryCommandHandler : IRequestHandler<CreateComponentCategoryCommand, ComponentCategoryResponse>
 {
@@ -204,6 +204,12 @@ public sealed class GetComponentCategoriesQueryHandler : IRequestHandler<GetComp
         if (query.ParentId.HasValue)
         {
             q = q.Where(x => x.ParentId == query.ParentId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = query.Search.Trim().ToLower();
+            q = q.Where(x => x.Name.ToLower().Contains(term));
         }
 
         q = q.AsNoTracking().OrderBy(x => x.Name);

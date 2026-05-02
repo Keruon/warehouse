@@ -18,9 +18,9 @@ public class ComponentCategoryController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PaginatedResponse<ComponentCategoryResponse>>> GetCategories([FromQuery] PagedQuery pagedQuery, [FromQuery] Guid? parentId, [FromQuery] bool? isActive, CancellationToken cancellationToken)
+    public async Task<ActionResult<PaginatedResponse<ComponentCategoryResponse>>> GetCategories([FromQuery] PagedQuery pagedQuery, [FromQuery] Guid? parentId, [FromQuery] bool? isActive, [FromQuery] string? search, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new GetComponentCategoriesQuery(pagedQuery, parentId, isActive), cancellationToken);
+        var result = await _mediator.Send(new GetComponentCategoriesQuery(pagedQuery, parentId, isActive, search), cancellationToken);
         return Ok(result);
     }
 

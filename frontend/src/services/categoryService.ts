@@ -11,6 +11,7 @@ type GetCategoriesParams = {
   pageSize?: number;
   parentId?: string;
   isActive?: boolean;
+  search?: string;
 };
 
 export async function getCategoriesPaged(params: GetCategoriesParams = {}): Promise<PaginatedResponse<ComponentCategoryResponse>> {
@@ -20,10 +21,16 @@ export async function getCategoriesPaged(params: GetCategoriesParams = {}): Prom
       pageSize: params.pageSize ?? 50,
       parentId: params.parentId,
       isActive: params.isActive,
+      search: params.search || undefined,
     },
   });
 
   return response.data;
+}
+
+export async function searchCategories(search: string): Promise<ComponentCategoryResponse[]> {
+  const response = await getCategoriesPaged({ search, pageSize: 50, isActive: true });
+  return response.items;
 }
 
 export async function getAllCategories(params: Omit<GetCategoriesParams, 'page' | 'pageSize'> = {}): Promise<ComponentCategoryResponse[]> {

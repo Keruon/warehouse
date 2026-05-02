@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Form, Input, Modal, Popconfirm, Select, Space, Switch, Table, Tag, Typography, message } from 'antd';
-import { getComponentCategories } from '../../services/componentService';
+import { searchCategories } from '../../services/categoryService';
 import { createComponentType, deleteComponentType, getComponentTypesPaged, updateComponentType } from '../../services/componentTypeService';
 import type { ComponentPackageType, ComponentTypeResponse, CreateComponentTypeRequest, UpdateComponentTypeRequest } from '../../types/inventory';
 
@@ -47,7 +47,20 @@ export default function ComponentTypesManager(): React.ReactElement {
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'copy'>('create');
   const [editing, setEditing] = useState<ComponentTypeResponse | null>(null);
 
-  const categoriesQuery = useQuery({ queryKey: ['lookup-categories-admin'], queryFn: getComponentCategories });
+  const [categorySearch, setCategorySearch] = useState('');
+  const [modalCategorySearch, setModalCategorySearch] = useState('');
+
+  const categorySearchQuery = useQuery({
+    queryKey: ['category-search', categorySearch],
+    queryFn: () => searchCategories(categorySearch),
+    enabled: categorySearch.length >= 3,
+  });
+
+  const modalCategorySearchQuery = useQuery({
+    queryKey: ['category-search', modalCategorySearch],
+    queryFn: () => searchCategories(modalCategorySearch),
+    enabled: modalCategorySearch.length >= 3,
+  });
 
   const typesQuery = useQuery({
     queryKey: ['admin-component-types', page, pageSize, categoryFilter, nameFilter, activeFilter],
@@ -62,9 +75,10 @@ export default function ComponentTypesManager(): React.ReactElement {
 
   const categoryMap = useMemo(() => {
     const map = new Map<string, string>();
-    (categoriesQuery.data ?? []).forEach((c) => map.set(c.id, c.name));
+    (categorySearchQuery.data ?? []).forEach((c) => map.set(c.id, c.name));
+    (modalCategorySearchQuery.data ?? []).forEach((c) => map.set(c.id, c.name));
     return map;
-  }, [categoriesQuery.data]);
+  }, [categorySearchQuery.data, modalCategorySearchQuery.data]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateComponentTypeRequest) => createComponentType(payload),
@@ -177,12 +191,12 @@ export default function ComponentTypesManager(): React.ReactElement {
             style={{ width: 180 }}
             allowClear
             showSearch
-            filterOption={(input, option) =>
-              (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
-            }
+            filterOption={false}
+            onSearch={(v) => setCategorySearch(v)}
+            notFoundContent={categorySearch.length < 3 ? 'Type 3+ characters to search' : 'No results'}
             value={categoryFilter}
             onChange={(v) => { setCategoryFilter(v); setPage(1); }}
-            options={(categoriesQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))}
+            options={(categorySearchQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))}
           />
           <Input.Search
             placeholder="Search kind/value/footprint"
@@ -254,10 +268,10 @@ export default function ComponentTypesManager(): React.ReactElement {
           <Form.Item name="categoryId" label="Category" rules={[{ required: true, message: 'Category is required.' }]}>
             <Select
               showSearch
-              filterOption={(input, option) =>
-                (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-              options={(categoriesQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))}
+              filterOption={false}
+              onSearch={(v) => setModalCategorySearch(v)}
+              notFoundContent={modalCategorySearch.length < 3 ? 'Type 3+ characters to search' : 'No results'}
+              options={(modalCategorySearchQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))}
             />
           </Form.Item>
           <Form.Item name="kind" label="Kind" rules={[{ required: true, message: 'Kind is required.' }]}>
