@@ -178,6 +178,10 @@ export default function LocationsManager(): React.ReactElement {
             placeholder="Area"
             style={{ width: 180 }}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+            }
             value={areaFilter}
             onChange={(v) => {
               setAreaFilter(v);
@@ -204,6 +208,10 @@ export default function LocationsManager(): React.ReactElement {
             placeholder="Shelf"
             style={{ width: 180 }}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+            }
             value={shelfFilter}
             disabled={!areaFilter}
             onChange={(v) => {
@@ -302,6 +310,10 @@ export default function LocationsManager(): React.ReactElement {
                     style={{ minWidth: 220 }}
                   >
                     <Select
+                      showSearch
+                      filterOption={(input, option) =>
+                        (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
                       options={(areasQuery.data ?? []).map((a) => ({ label: `${a.name} (${a.code})`, value: a.id }))}
                       disabled={!isWarehouse}
                       placeholder={isWarehouse ? 'Select area' : 'Project uses production zone'}
@@ -329,6 +341,10 @@ export default function LocationsManager(): React.ReactElement {
                     style={{ minWidth: 220 }}
                   >
                     <Select
+                      showSearch
+                      filterOption={(input, option) =>
+                        (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+                      }
                       options={(shelvesFormQuery.data ?? []).map((s) => ({ label: `${s.name} (${s.code})`, value: s.id }))}
                       disabled={!isWarehouse || !formAreaId}
                       placeholder={isWarehouse ? 'Select shelf' : 'Project uses default production shelf'}

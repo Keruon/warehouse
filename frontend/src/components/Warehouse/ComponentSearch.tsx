@@ -108,6 +108,10 @@ export default function ComponentSearch({
                 <Form.Item label="Key Attributes">
                   <Select
                     allowClear
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
                     placeholder="All types"
                     value={filters.typeId}
                     options={componentTypeOptions}
@@ -120,6 +124,10 @@ export default function ComponentSearch({
                 <Form.Item label="Category">
                   <Select
                     allowClear
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
                     placeholder="All categories"
                     value={filters.categoryId}
                     options={categories.map((option) => ({ value: option.id, label: option.name }))}
@@ -132,6 +140,10 @@ export default function ComponentSearch({
                 <Form.Item label="Supplier">
                   <Select
                     allowClear
+                    showSearch
+                    filterOption={(input, option) =>
+                      (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
                     placeholder="All suppliers"
                     value={filters.supplierId}
                     options={suppliers.map((option) => ({ value: option.id, label: `${option.code} - ${option.name}` }))}

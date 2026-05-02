@@ -139,6 +139,10 @@ export default function ShelvesManager(): React.ReactElement {
             placeholder="Filter by area"
             style={{ width: 220 }}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+            }
             value={areaFilter}
             onChange={(v) => {
               setAreaFilter(v);
@@ -194,7 +198,13 @@ export default function ShelvesManager(): React.ReactElement {
       >
         <Form<ShelfFormValues> form={form} layout="vertical" onFinish={submit}>
           <Form.Item name="areaId" label="Area" rules={[{ required: true, message: 'Area is required.' }]}>
-            <Select options={(areasQuery.data ?? []).map((a) => ({ label: `${a.name} (${a.code})`, value: a.id }))} />
+            <Select
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              options={(areasQuery.data ?? []).map((a) => ({ label: `${a.name} (${a.code})`, value: a.id }))}
+            />
           </Form.Item>
           <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Name is required.' }]}>
             <Input />

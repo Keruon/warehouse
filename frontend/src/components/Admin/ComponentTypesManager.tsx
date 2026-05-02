@@ -176,6 +176,10 @@ export default function ComponentTypesManager(): React.ReactElement {
             placeholder="Category"
             style={{ width: 180 }}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+            }
             value={categoryFilter}
             onChange={(v) => { setCategoryFilter(v); setPage(1); }}
             options={(categoriesQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))}
@@ -248,7 +252,13 @@ export default function ComponentTypesManager(): React.ReactElement {
       >
         <Form<TypeFormValues> form={form} layout="vertical" onFinish={submit}>
           <Form.Item name="categoryId" label="Category" rules={[{ required: true, message: 'Category is required.' }]}>
-            <Select options={(categoriesQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))} />
+            <Select
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label?.toString() ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              options={(categoriesQuery.data ?? []).map((c) => ({ label: c.name, value: c.id }))}
+            />
           </Form.Item>
           <Form.Item name="kind" label="Kind" rules={[{ required: true, message: 'Kind is required.' }]}>
             <Input />
