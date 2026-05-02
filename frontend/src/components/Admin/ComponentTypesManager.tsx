@@ -44,6 +44,7 @@ export default function ComponentTypesManager(): React.ReactElement {
   const [activeFilter, setActiveFilter] = useState<boolean | undefined>();
   const [form] = Form.useForm<TypeFormValues>();
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'copy'>('create');
   const [editing, setEditing] = useState<ComponentTypeResponse | null>(null);
 
   const categoriesQuery = useQuery({ queryKey: ['lookup-categories-admin'], queryFn: getComponentCategories });
@@ -81,6 +82,7 @@ export default function ComponentTypesManager(): React.ReactElement {
   });
 
   function openCreate(): void {
+    setModalMode('create');
     setEditing(null);
     form.resetFields();
     form.setFieldsValue({ type: 'Other', isActive: true });
@@ -88,6 +90,7 @@ export default function ComponentTypesManager(): React.ReactElement {
   }
 
   function openEdit(item: ComponentTypeResponse): void {
+    setModalMode('edit');
     setEditing(item);
     form.setFieldsValue({
       categoryId: item.categoryId,
@@ -101,9 +104,24 @@ export default function ComponentTypesManager(): React.ReactElement {
     setModalOpen(true);
   }
 
+  function openCopy(item: ComponentTypeResponse): void {
+    setModalMode('copy');
+    setEditing(item);
+    form.setFieldsValue({
+      categoryId: item.categoryId,
+      kind: item.kind,
+      value: item.value,
+      footprint: item.footprint,
+      type: item.type as ComponentPackageType,
+      description: item.description,
+      isActive: true,
+    });
+    setModalOpen(true);
+  }
+
   async function submit(values: TypeFormValues): Promise<void> {
     try {
-      if (editing) {
+      if (modalMode === 'edit' && editing) {
         await updateMutation.mutateAsync({
           id: editing.id,
           payload: {
@@ -126,10 +144,11 @@ export default function ComponentTypesManager(): React.ReactElement {
           type: values.type,
           description: values.description?.trim() || undefined,
         });
-        messageApi.success('Component type created.');
+        messageApi.success(modalMode === 'copy' ? 'Component type copied.' : 'Component type created.');
       }
 
       setModalOpen(false);
+      setModalMode('create');
       setEditing(null);
       form.resetFields();
     } catch (error) {
@@ -207,6 +226,7 @@ export default function ComponentTypesManager(): React.ReactElement {
             render: (_, item) => (
               <Space>
                 <Button size="small" onClick={() => openEdit(item)}>Edit</Button>
+                <Button size="small" onClick={() => openCopy(item)}>Copy</Button>
                 <Popconfirm title="Delete type?" onConfirm={() => remove(item)} okButtonProps={{ loading: deleteMutation.isPending }}>
                   <Button size="small" danger>Delete</Button>
                 </Popconfirm>
@@ -217,9 +237,12 @@ export default function ComponentTypesManager(): React.ReactElement {
       />
 
       <Modal
-        title={editing ? 'Edit Component Type' : 'Add Component Type'}
+        title={modalMode === 'edit' ? 'Edit Component Type' : modalMode === 'copy' ? 'Copy Component Type' : 'Add Component Type'}
         open={modalOpen}
-        onCancel={() => setModalOpen(false)}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalMode('create');
+        }}
         onOk={() => form.submit()}
         confirmLoading={createMutation.isPending || updateMutation.isPending}
       >
@@ -242,7 +265,7 @@ export default function ComponentTypesManager(): React.ReactElement {
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={3} />
           </Form.Item>
-          {editing ? (
+          {modalMode === 'edit' ? (
             <Form.Item name="isActive" label="Active" valuePropName="checked">
               <Switch />
             </Form.Item>
