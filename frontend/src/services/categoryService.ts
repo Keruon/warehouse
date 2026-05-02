@@ -26,6 +26,28 @@ export async function getCategoriesPaged(params: GetCategoriesParams = {}): Prom
   return response.data;
 }
 
+export async function getAllCategories(params: Omit<GetCategoriesParams, 'page' | 'pageSize'> = {}): Promise<ComponentCategoryResponse[]> {
+  const pageSize = 200;
+  let page = 1;
+  let totalItems = 0;
+  const all: ComponentCategoryResponse[] = [];
+
+  do {
+    const response = await getCategoriesPaged({
+      page,
+      pageSize,
+      parentId: params.parentId,
+      isActive: params.isActive,
+    });
+
+    totalItems = response.totalItems;
+    all.push(...response.items);
+    page += 1;
+  } while (all.length < totalItems);
+
+  return all;
+}
+
 export async function createCategory(data: CreateComponentCategoryRequest): Promise<ComponentCategoryResponse> {
   const response = await api.post<ComponentCategoryResponse>('/api/component-categories', data);
   return response.data;

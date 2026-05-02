@@ -3,7 +3,7 @@ import { AxiosError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Form, Input, Modal, Popconfirm, Space, Switch, Tree, Typography, message } from 'antd';
 import type { DataNode } from 'antd/es/tree';
-import { createCategory, deleteCategory, getCategoriesPaged, updateCategory } from '../../services/categoryService';
+import { createCategory, deleteCategory, getAllCategories, updateCategory } from '../../services/categoryService';
 import type { ComponentCategoryResponse, CreateComponentCategoryRequest, UpdateComponentCategoryRequest } from '../../types/inventory';
 
 const { Title, Text } = Typography;
@@ -57,10 +57,7 @@ export default function CategoriesManager(): React.ReactElement {
 
   const categoriesQuery = useQuery({
     queryKey: ['admin-categories'],
-    queryFn: async () => {
-      const first = await getCategoriesPaged({ page: 1, pageSize: 200 });
-      return first.items;
-    },
+    queryFn: async () => getAllCategories(),
   });
 
   const items = categoriesQuery.data ?? [];
