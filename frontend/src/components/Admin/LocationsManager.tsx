@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Form, Input, InputNumber, Modal, Popconfirm, Select, Space, Switch, Table, Tag, Typography, message } from 'antd';
-import { getAreas, getShelvesByArea, getLocationsPaged, createLocation, updateLocation, deleteLocation } from '../../services/locationService';
+import { getAreas, getAllShelves, getShelvesByArea, getLocationsPaged, createLocation, updateLocation, deleteLocation } from '../../services/locationService';
 import type { CreateLocationRequest, LocationKind, LocationResponse, UpdateLocationRequest } from '../../types/inventory';
 
 const { Title } = Typography;
@@ -49,6 +49,7 @@ export default function LocationsManager(): React.ReactElement {
   const [formAreaId, setFormAreaId] = useState<string | undefined>();
 
   const areasQuery = useQuery({ queryKey: ['lookup-areas-all'], queryFn: getAreas });
+  const allShelvesQuery = useQuery({ queryKey: ['lookup-shelves-all'], queryFn: getAllShelves });
   const shelvesFilterQuery = useQuery({
     queryKey: ['lookup-shelves-filter', areaFilter],
     queryFn: () => getShelvesByArea(areaFilter as string),
@@ -68,10 +69,11 @@ export default function LocationsManager(): React.ReactElement {
 
   const shelfMap = useMemo(() => {
     const map = new Map<string, string>();
+    (allShelvesQuery.data ?? []).forEach((s) => map.set(s.id, s.name));
     (shelvesFilterQuery.data ?? []).forEach((s) => map.set(s.id, s.name));
     (shelvesFormQuery.data ?? []).forEach((s) => map.set(s.id, s.name));
     return map;
-  }, [shelvesFilterQuery.data, shelvesFormQuery.data]);
+  }, [allShelvesQuery.data, shelvesFilterQuery.data, shelvesFormQuery.data]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateLocationRequest) => createLocation(payload),

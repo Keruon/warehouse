@@ -22,7 +22,7 @@ export default function AdminPage(): React.ReactElement {
           { key: 'shelves', label: 'Shelves', children: <ShelvesManager /> },
           { key: 'locations', label: 'Locations', children: <LocationsManager /> },
           { key: 'categories', label: 'Categories', children: <CategoriesManager /> },
-          { key: 'component-types', label: 'Component Types', children: <ComponentTypesManager /> },
+          { key: 'component-types', label: 'Key Attributes', children: <ComponentTypesManager /> },
           { key: 'suppliers', label: 'Suppliers', children: <SuppliersManager /> },
           { key: 'users', label: 'Users', children: <UsersManager /> },
           { key: 'audit', label: 'Audit Log', children: <AuditLogViewer /> },

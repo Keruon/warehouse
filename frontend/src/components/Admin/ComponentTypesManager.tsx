@@ -134,7 +134,7 @@ export default function ComponentTypesManager(): React.ReactElement {
             isActive: values.isActive ?? true,
           },
         });
-        messageApi.success('Component type updated.');
+        messageApi.success('Key attributes updated.');
       } else {
         await createMutation.mutateAsync({
           categoryId: values.categoryId,
@@ -144,7 +144,7 @@ export default function ComponentTypesManager(): React.ReactElement {
           type: values.type,
           description: values.description?.trim() || undefined,
         });
-        messageApi.success(modalMode === 'copy' ? 'Component type copied.' : 'Component type created.');
+        messageApi.success(modalMode === 'copy' ? 'Key attributes copied.' : 'Key attributes created.');
       }
 
       setModalOpen(false);
@@ -152,16 +152,16 @@ export default function ComponentTypesManager(): React.ReactElement {
       setEditing(null);
       form.resetFields();
     } catch (error) {
-      messageApi.error(getErrorMessage(error, 'Failed to save component type.'));
+      messageApi.error(getErrorMessage(error, 'Failed to save key attributes.'));
     }
   }
 
   async function remove(item: ComponentTypeResponse): Promise<void> {
     try {
       await deleteMutation.mutateAsync(item.id);
-      messageApi.success('Component type deleted.');
+      messageApi.success('Key attributes deleted.');
     } catch (error) {
-      messageApi.error(getErrorMessage(error, 'Failed to delete component type.'));
+      messageApi.error(getErrorMessage(error, 'Failed to delete key attributes.'));
     }
   }
 
@@ -170,7 +170,7 @@ export default function ComponentTypesManager(): React.ReactElement {
       {contextHolder}
 
       <Space style={{ width: '100%', justifyContent: 'space-between' }}>
-        <Title level={4} style={{ margin: 0 }}>Component Types</Title>
+        <Title level={4} style={{ margin: 0 }}>Key Attributes</Title>
         <Space>
           <Select
             placeholder="Category"
@@ -237,7 +237,7 @@ export default function ComponentTypesManager(): React.ReactElement {
       />
 
       <Modal
-        title={modalMode === 'edit' ? 'Edit Component Type' : modalMode === 'copy' ? 'Copy Component Type' : 'Add Component Type'}
+        title={modalMode === 'edit' ? 'Edit Key Attributes' : modalMode === 'copy' ? 'Copy Key Attributes' : 'Add Key Attributes'}
         open={modalOpen}
         onCancel={() => {
           setModalOpen(false);

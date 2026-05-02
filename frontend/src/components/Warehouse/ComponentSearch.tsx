@@ -105,7 +105,7 @@ export default function ComponentSearch({
           <Form layout="vertical">
             <Row gutter={12}>
               <Col xs={24} md={8}>
-                <Form.Item label="Component Type">
+                <Form.Item label="Key Attributes">
                   <Select
                     allowClear
                     placeholder="All types"

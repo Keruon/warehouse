@@ -51,7 +51,7 @@ export default function DashboardPage(): React.ReactElement {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Total Component Types"
+              title="Total Key Attributes"
               value={componentTypesQuery.data?.totalItems ?? 0}
               loading={componentTypesQuery.isLoading}
             />

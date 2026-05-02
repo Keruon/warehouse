@@ -23,6 +23,25 @@ export async function getShelvesByArea(areaId: string): Promise<ShelfResponse[]>
   return res.data.items;
 }
 
+export async function getAllShelves(): Promise<ShelfResponse[]> {
+  const pageSize = 200;
+  let page = 1;
+  let totalItems = 0;
+  const all: ShelfResponse[] = [];
+
+  do {
+    const res = await api.get<PaginatedResponse<ShelfResponse>>('/api/shelves', {
+      params: { page, pageSize, isActive: true },
+    });
+
+    totalItems = res.data.totalItems;
+    all.push(...res.data.items);
+    page += 1;
+  } while (all.length < totalItems);
+
+  return all;
+}
+
 export async function getLocationsByShelf(shelfId: string): Promise<LocationResponse[]> {
   const res = await api.get<PaginatedResponse<LocationResponse>>('/api/locations', {
     params: { shelfId, page: 1, pageSize: 200, isActive: true },

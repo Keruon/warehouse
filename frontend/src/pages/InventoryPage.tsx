@@ -192,13 +192,13 @@ export default function InventoryPage(): React.ReactElement {
       >
         <Form<CreateComponentFormValues> form={createForm} layout="vertical" onFinish={submitCreate}>
           <Form.Item
-            label="Component Type"
+            label="Key Attributes"
             name="componentTypeId"
-            rules={[{ required: true, message: 'Select a component type.' }]}
+            rules={[{ required: true, message: 'Select key attributes.' }]}
           >
             <Input
               list="component-type-suggestions"
-              placeholder="Paste Component Type ID"
+              placeholder="Paste Key Attributes ID"
               autoComplete="off"
             />
           </Form.Item>
