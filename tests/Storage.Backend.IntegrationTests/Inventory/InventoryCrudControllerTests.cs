@@ -242,6 +242,99 @@ public sealed class InventoryCrudControllerTests
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task CategorySearch_WhenSearchMatchesName_ShouldReturnMatchingCategories()
+    {
+        await TestDataSeeder.ResetAndSeedAsync(_factory.Services);
+        using var client = CreateClient();
+        await AuthTestHelper.AuthenticateAsAdminAsync(client);
+
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "Resistors", parentId = (Guid?)null, description = "" });
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "Resistor Networks", parentId = (Guid?)null, description = "" });
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "Capacitors", parentId = (Guid?)null, description = "" });
+
+        var response = await client.GetAsync("/api/component-categories?search=Resist&page=1&pageSize=50");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var doc = await ParseJsonAsync(response);
+        var items = doc.RootElement.GetProperty("items");
+        items.GetArrayLength().Should().BeGreaterThanOrEqualTo(2);
+
+        foreach (var item in items.EnumerateArray())
+        {
+            item.GetProperty("name").GetString().Should().ContainEquivalentOf("resist");
+        }
+    }
+
+    [Fact]
+    public async Task CategorySearch_WhenSearchIsCaseInsensitive_ShouldReturnMatches()
+    {
+        await TestDataSeeder.ResetAndSeedAsync(_factory.Services);
+        using var client = CreateClient();
+        await AuthTestHelper.AuthenticateAsAdminAsync(client);
+
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "Inductors", parentId = (Guid?)null, description = "" });
+
+        var lowerResponse = await client.GetAsync("/api/component-categories?search=inductor&page=1&pageSize=50");
+        lowerResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var lowerDoc = await ParseJsonAsync(lowerResponse);
+        lowerDoc.RootElement.GetProperty("items").GetArrayLength().Should().BeGreaterThanOrEqualTo(1);
+
+        var upperResponse = await client.GetAsync("/api/component-categories?search=INDUCTOR&page=1&pageSize=50");
+        upperResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var upperDoc = await ParseJsonAsync(upperResponse);
+        upperDoc.RootElement.GetProperty("items").GetArrayLength().Should().BeGreaterThanOrEqualTo(1);
+    }
+
+    [Fact]
+    public async Task CategorySearch_WhenSearchDoesNotMatch_ShouldReturnEmptyItems()
+    {
+        await TestDataSeeder.ResetAndSeedAsync(_factory.Services);
+        using var client = CreateClient();
+        await AuthTestHelper.AuthenticateAsAdminAsync(client);
+
+        var response = await client.GetAsync("/api/component-categories?search=xyznonexistent999&page=1&pageSize=50");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var doc = await ParseJsonAsync(response);
+        doc.RootElement.GetProperty("items").GetArrayLength().Should().Be(0);
+        doc.RootElement.GetProperty("totalItems").GetInt32().Should().Be(0);
+    }
+
+    [Fact]
+    public async Task CategorySearch_WhenSearchIsOmitted_ShouldReturnAllCategories()
+    {
+        await TestDataSeeder.ResetAndSeedAsync(_factory.Services);
+        using var client = CreateClient();
+        await AuthTestHelper.AuthenticateAsAdminAsync(client);
+
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "Cat-A", parentId = (Guid?)null, description = "" });
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "Cat-B", parentId = (Guid?)null, description = "" });
+
+        var withSearch = await client.GetAsync("/api/component-categories?page=1&pageSize=100");
+        withSearch.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var doc = await ParseJsonAsync(withSearch);
+        doc.RootElement.GetProperty("items").GetArrayLength().Should().BeGreaterThanOrEqualTo(2);
+    }
+
+    [Fact]
+    public async Task CategorySearch_WhenSearchIsSubstring_ShouldMatchMiddleOfName()
+    {
+        await TestDataSeeder.ResetAndSeedAsync(_factory.Services);
+        using var client = CreateClient();
+        await AuthTestHelper.AuthenticateAsAdminAsync(client);
+
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "High-Speed Transistors", parentId = (Guid?)null, description = "" });
+        await client.PostAsJsonAsync("/api/component-categories", new { name = "Diodes", parentId = (Guid?)null, description = "" });
+
+        var response = await client.GetAsync("/api/component-categories?search=speed&page=1&pageSize=50");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        using var doc = await ParseJsonAsync(response);
+        var items = doc.RootElement.GetProperty("items");
+        items.GetArrayLength().Should().Be(1);
+        items[0].GetProperty("name").GetString().Should().Be("High-Speed Transistors");
+    }
+
     private HttpClient CreateClient()
     {
         return _factory.CreateClient(new WebApplicationFactoryClientOptions
